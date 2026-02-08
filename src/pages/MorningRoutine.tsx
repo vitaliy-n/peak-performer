@@ -219,8 +219,9 @@ export const MorningRoutine: React.FC = () => {
       setCurrentStep(currentStep + 1);
     }
 
-    const allCompleted = completedSteps.filter(Boolean).length === 5;
-    if (allCompleted) {
+    const alreadyCompleted = completedSteps.filter(Boolean).length;
+    const willBeAllCompleted = alreadyCompleted === 5 && !completedSteps[currentStep];
+    if (willBeAllCompleted) {
       addPoints(50);
     }
   };

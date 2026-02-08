@@ -10,7 +10,9 @@ import {
   Clock,
   TrendingUp,
   Quote,
-  ChevronRight
+  ChevronRight,
+  Timer,
+  Moon
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui';
@@ -266,10 +268,35 @@ export const Dashboard: React.FC = () => {
         </Card>
       </div>
 
+      {/* Daily Score */}
+      {todayLog && (todayLog.productivityScore > 0 || todayLog.energyScore > 0 || todayLog.moodScore > 0) && (
+        <Card className="mt-6 mb-6">
+          <CardHeader>
+            <CardTitle>Оцінка дня</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-6">
+              {[
+                { label: 'Продуктивність', value: todayLog.productivityScore, color: 'text-blue-600', bg: 'bg-blue-100' },
+                { label: 'Енергія', value: todayLog.energyScore, color: 'text-green-600', bg: 'bg-green-100' },
+                { label: 'Настрій', value: todayLog.moodScore, color: 'text-amber-600', bg: 'bg-amber-100' },
+              ].map(item => (
+                <div key={item.label} className="text-center">
+                  <div className={`w-16 h-16 ${item.bg} rounded-full flex items-center justify-center mx-auto mb-2`}>
+                    <span className={`text-2xl font-bold ${item.color}`}>{item.value}</span>
+                  </div>
+                  <p className="text-sm text-gray-600">{item.label}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Quick Actions */}
       <div className="mt-8">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Швидкі дії</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <button
             onClick={() => setCurrentView('morning')}
             className="p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all flex flex-col items-center gap-2"
@@ -277,7 +304,7 @@ export const Dashboard: React.FC = () => {
             <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
               <Zap className="w-6 h-6 text-amber-600" />
             </div>
-            <span className="font-medium text-gray-700">Ранкова рутина</span>
+            <span className="font-medium text-gray-700 text-sm">Ранкова рутина</span>
           </button>
           
           <button
@@ -287,7 +314,7 @@ export const Dashboard: React.FC = () => {
             <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
               <TrendingUp className="w-6 h-6 text-green-600" />
             </div>
-            <span className="font-medium text-gray-700">Відмітити звичку</span>
+            <span className="font-medium text-gray-700 text-sm">Відмітити звичку</span>
           </button>
           
           <button
@@ -297,7 +324,17 @@ export const Dashboard: React.FC = () => {
             <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
               <Target className="w-6 h-6 text-purple-600" />
             </div>
-            <span className="font-medium text-gray-700">Переглянути цілі</span>
+            <span className="font-medium text-gray-700 text-sm">Переглянути цілі</span>
+          </button>
+          
+          <button
+            onClick={() => setCurrentView('pomodoro')}
+            className="p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all flex flex-col items-center gap-2"
+          >
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+              <Timer className="w-6 h-6 text-red-600" />
+            </div>
+            <span className="font-medium text-gray-700 text-sm">Помодоро</span>
           </button>
           
           <button
@@ -307,7 +344,17 @@ export const Dashboard: React.FC = () => {
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
               <BookOpen className="w-6 h-6 text-blue-600" />
             </div>
-            <span className="font-medium text-gray-700">Написати в журнал</span>
+            <span className="font-medium text-gray-700 text-sm">Написати в журнал</span>
+          </button>
+
+          <button
+            onClick={() => setCurrentView('journal')}
+            className="p-4 bg-white border border-gray-200 rounded-xl hover:border-blue-300 hover:shadow-md transition-all flex flex-col items-center gap-2"
+          >
+            <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
+              <Moon className="w-6 h-6 text-indigo-600" />
+            </div>
+            <span className="font-medium text-gray-700 text-sm">Вечірній огляд</span>
           </button>
         </div>
       </div>

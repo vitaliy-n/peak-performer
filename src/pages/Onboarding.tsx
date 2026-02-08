@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Zap, Target, Repeat, CheckCircle2, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Zap, Target, Repeat, CheckCircle2, ChevronRight, ChevronLeft, Database } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { Button, Input, Textarea } from '../components/ui';
 
@@ -32,7 +32,7 @@ const SUGGESTED_VALUES = [
 ];
 
 export const Onboarding: React.FC = () => {
-  const { initUser, updateUser } = useStore();
+  const { initUser, updateUser, loadSeedData } = useStore();
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [mission, setMission] = useState('');
@@ -246,6 +246,18 @@ export const Onboarding: React.FC = () => {
                     Визначте "жабу" дня
                   </li>
                 </ul>
+              </div>
+
+              <div className="border-t pt-4 mt-2">
+                <button
+                  onClick={() => {
+                    loadSeedData();
+                  }}
+                  className="w-full flex items-center justify-center gap-2 p-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm"
+                >
+                  <Database className="w-4 h-4" />
+                  Або завантажити демо-дані для ознайомлення
+                </button>
               </div>
             </div>
           )}

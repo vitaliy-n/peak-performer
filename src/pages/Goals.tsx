@@ -340,10 +340,16 @@ export const Goals: React.FC = () => {
 
         {activeGoals.length === 0 && (
           <Card>
-            <CardContent className="py-12 text-center">
-              <Target className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 mb-4">У вас ще немає активних цілей</p>
-              <Button variant="outline" onClick={() => setIsModalOpen(true)}>
+            <CardContent className="py-16 text-center">
+              <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Target className="w-10 h-10 text-purple-500" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Встановіть свої SMART цілі</h3>
+              <p className="text-gray-500 mb-1 max-w-sm mx-auto">
+                "Begin with the end in mind" — починайте з кінцевої мети
+              </p>
+              <p className="text-sm text-gray-400 mb-6">— Стівен Кові, 7 навичок</p>
+              <Button onClick={() => setIsModalOpen(true)}>
                 <Plus className="w-4 h-4 mr-2" />
                 Створити першу ціль
               </Button>

@@ -10,7 +10,9 @@ import {
   Star,
   Inbox,
   FolderKanban,
-  AlertCircle
+  AlertCircle,
+  LayoutGrid,
+  List
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useStore } from '../store/useStore';
@@ -28,6 +30,7 @@ export const Tasks: React.FC = () => {
   const [filterContext, setFilterContext] = useState<string>('all');
   const [newInboxItem, setNewInboxItem] = useState('');
   const [showInbox, setShowInbox] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'matrix'>('list');
 
   const [formData, setFormData] = useState({
     title: '',
@@ -214,8 +217,29 @@ export const Tasks: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Context Filter */}
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+      {/* View Toggle + Context Filter */}
+      <div className="flex items-center gap-4 mb-6">
+        <div className="flex bg-gray-100 rounded-lg p-1">
+          <button
+            onClick={() => setViewMode('list')}
+            className={`p-2 rounded-md transition-colors ${
+              viewMode === 'list' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'
+            }`}
+            title="Список"
+          >
+            <List className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setViewMode('matrix')}
+            className={`p-2 rounded-md transition-colors ${
+              viewMode === 'matrix' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'
+            }`}
+            title="Матриця Ейзенхауера"
+          >
+            <LayoutGrid className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-2 flex-1">
         <button
           onClick={() => setFilterContext('all')}
           className={`px-4 py-2 rounded-lg whitespace-nowrap ${
@@ -239,8 +263,94 @@ export const Tasks: React.FC = () => {
             {context} ({activeTasks.filter(t => t.context === context).length})
           </button>
         ))}
+        </div>
       </div>
 
+      {viewMode === 'matrix' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          {/* Q1: Urgent + Important */}
+          <Card className="border-2 border-red-200">
+            <CardHeader className="bg-red-50 py-3">
+              <CardTitle className="text-sm flex items-center gap-2 text-red-700">
+                <span className="w-6 h-6 bg-red-600 text-white rounded flex items-center justify-center text-xs font-bold">I</span>
+                Терміново + Важливо — ЗРОБИТИ
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y max-h-64 overflow-y-auto">
+                {activeTasks.filter(t => t.priority === 'A' && t.dueDate && t.dueDate <= today).map(task => (
+                  <TaskItem key={task.id} task={task} onToggle={() => toggleTaskCompletion(task.id)} onEdit={() => openEditModal(task)} onDelete={() => handleDelete(task.id)} onSetFrog={() => setFrogOfDay(task.id)} showMenu={showMenu} setShowMenu={setShowMenu} />
+                ))}
+                {activeTasks.filter(t => t.priority === 'A' && t.dueDate && t.dueDate <= today).length === 0 && (
+                  <p className="p-4 text-center text-sm text-gray-400">Чудово! Немає термінових важливих завдань</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Q2: Not Urgent + Important */}
+          <Card className="border-2 border-blue-200">
+            <CardHeader className="bg-blue-50 py-3">
+              <CardTitle className="text-sm flex items-center gap-2 text-blue-700">
+                <span className="w-6 h-6 bg-blue-600 text-white rounded flex items-center justify-center text-xs font-bold">II</span>
+                Важливо, але не Терміново — ПЛАНУВАТИ
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y max-h-64 overflow-y-auto">
+                {activeTasks.filter(t => (t.priority === 'A' || t.priority === 'B') && (!t.dueDate || t.dueDate > today)).map(task => (
+                  <TaskItem key={task.id} task={task} onToggle={() => toggleTaskCompletion(task.id)} onEdit={() => openEditModal(task)} onDelete={() => handleDelete(task.id)} onSetFrog={() => setFrogOfDay(task.id)} showMenu={showMenu} setShowMenu={setShowMenu} />
+                ))}
+                {activeTasks.filter(t => (t.priority === 'A' || t.priority === 'B') && (!t.dueDate || t.dueDate > today)).length === 0 && (
+                  <p className="p-4 text-center text-sm text-gray-400">Немає запланованих важливих завдань</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Q3: Urgent + Not Important */}
+          <Card className="border-2 border-yellow-200">
+            <CardHeader className="bg-yellow-50 py-3">
+              <CardTitle className="text-sm flex items-center gap-2 text-yellow-700">
+                <span className="w-6 h-6 bg-yellow-500 text-white rounded flex items-center justify-center text-xs font-bold">III</span>
+                Терміново, але не Важливо — ДЕЛЕГУВАТИ
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y max-h-64 overflow-y-auto">
+                {activeTasks.filter(t => t.priority === 'C' && t.dueDate && t.dueDate <= today).map(task => (
+                  <TaskItem key={task.id} task={task} onToggle={() => toggleTaskCompletion(task.id)} onEdit={() => openEditModal(task)} onDelete={() => handleDelete(task.id)} onSetFrog={() => setFrogOfDay(task.id)} showMenu={showMenu} setShowMenu={setShowMenu} />
+                ))}
+                {activeTasks.filter(t => t.priority === 'C' && t.dueDate && t.dueDate <= today).length === 0 && (
+                  <p className="p-4 text-center text-sm text-gray-400">Немає термінових другорядних завдань</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Q4: Not Urgent + Not Important */}
+          <Card className="border-2 border-gray-200">
+            <CardHeader className="bg-gray-50 py-3">
+              <CardTitle className="text-sm flex items-center gap-2 text-gray-600">
+                <span className="w-6 h-6 bg-gray-400 text-white rounded flex items-center justify-center text-xs font-bold">IV</span>
+                Не Терміново + Не Важливо — ВИДАЛИТИ
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y max-h-64 overflow-y-auto">
+                {activeTasks.filter(t => (t.priority === 'D' || t.priority === 'E') || (t.priority === 'C' && (!t.dueDate || t.dueDate > today))).map(task => (
+                  <TaskItem key={task.id} task={task} onToggle={() => toggleTaskCompletion(task.id)} onEdit={() => openEditModal(task)} onDelete={() => handleDelete(task.id)} onSetFrog={() => setFrogOfDay(task.id)} showMenu={showMenu} setShowMenu={setShowMenu} />
+                ))}
+                {activeTasks.filter(t => (t.priority === 'D' || t.priority === 'E') || (t.priority === 'C' && (!t.dueDate || t.dueDate > today))).length === 0 && (
+                  <p className="p-4 text-center text-sm text-gray-400">Немає другорядних завдань</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {viewMode === 'list' && (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Priority A Tasks */}
         <Card>
@@ -329,6 +439,7 @@ export const Tasks: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+      )}
 
       {/* Inbox Modal */}
       <Modal

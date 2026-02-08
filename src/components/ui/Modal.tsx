@@ -27,6 +27,15 @@ export const Modal: React.FC<ModalProps> = ({
     };
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const sizes = {
@@ -43,11 +52,11 @@ export const Modal: React.FC<ModalProps> = ({
         onClick={onClose}
       />
       <div
-        className={`relative bg-white rounded-xl shadow-xl ${sizes[size]} w-full mx-4 max-h-[90vh] overflow-auto`}
+        className={`relative bg-white dark:bg-gray-800 rounded-xl shadow-xl ${sizes[size]} w-full mx-4 max-h-[90vh] overflow-auto`}
       >
         {title && (
-          <div className="flex items-center justify-between px-6 py-4 border-b">
-            <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+          <div className="flex items-center justify-between px-6 py-4 border-b dark:border-gray-700">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
             <button
               onClick={onClose}
               className="p-1 hover:bg-gray-100 rounded-lg transition-colors"

@@ -15,7 +15,7 @@ import { useStore } from '../store/useStore';
 import { Card, CardContent, CardHeader, CardTitle, Button, Input, Textarea } from '../components/ui';
 
 export const Settings: React.FC = () => {
-  const { user, updateUser, loadSeedData, clearAllData } = useStore();
+  const { user, updateUser, loadSeedData, clearAllData, habits, goals, tasks, projects, dailyLogs, journalEntries, achievements, inbox, theme, setTheme } = useStore();
   
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
@@ -50,6 +50,14 @@ export const Settings: React.FC = () => {
   const handleExportData = () => {
     const data = {
       user,
+      habits,
+      goals,
+      tasks,
+      projects,
+      dailyLogs,
+      journalEntries,
+      achievements,
+      inbox,
       exportedAt: new Date().toISOString(),
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -192,15 +200,30 @@ export const Settings: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-3 gap-4">
-            <button className="p-4 border-2 border-blue-500 rounded-xl bg-blue-50">
-              <div className="w-full h-8 bg-white rounded mb-2" />
+            <button
+              onClick={() => setTheme('light')}
+              className={`p-4 border-2 rounded-xl transition-colors ${
+                theme === 'light' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="w-full h-8 bg-white border border-gray-200 rounded mb-2" />
               <p className="text-sm font-medium">Світла</p>
             </button>
-            <button className="p-4 border-2 border-gray-200 rounded-xl hover:border-gray-300">
+            <button
+              onClick={() => setTheme('dark')}
+              className={`p-4 border-2 rounded-xl transition-colors ${
+                theme === 'dark' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
               <div className="w-full h-8 bg-gray-800 rounded mb-2" />
               <p className="text-sm font-medium">Темна</p>
             </button>
-            <button className="p-4 border-2 border-gray-200 rounded-xl hover:border-gray-300">
+            <button
+              onClick={() => setTheme('auto')}
+              className={`p-4 border-2 rounded-xl transition-colors ${
+                theme === 'auto' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
               <div className="w-full h-8 bg-gradient-to-r from-white to-gray-800 rounded mb-2" />
               <p className="text-sm font-medium">Авто</p>
             </button>

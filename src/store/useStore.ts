@@ -26,6 +26,7 @@ interface AppState {
   achievements: Achievement[];
   inbox: string[];
   currentView: string;
+  theme: 'light' | 'dark' | 'auto';
   
   // User actions
   initUser: (name: string) => void;
@@ -75,6 +76,9 @@ interface AppState {
   // Navigation
   setCurrentView: (view: string) => void;
   
+  // Theme
+  setTheme: (theme: 'light' | 'dark' | 'auto') => void;
+  
   // Seed data
   loadSeedData: () => void;
   clearAllData: () => void;
@@ -119,6 +123,7 @@ export const useStore = create<AppState>()(
       achievements: DEFAULT_ACHIEVEMENTS,
       inbox: [],
       currentView: 'dashboard',
+      theme: 'light',
 
       initUser: (name: string) => {
         const user: User = {
@@ -494,6 +499,23 @@ export const useStore = create<AppState>()(
 
       setCurrentView: (view) => {
         set({ currentView: view });
+      },
+
+      setTheme: (theme) => {
+        set({ theme });
+        const root = document.documentElement;
+        if (theme === 'dark') {
+          root.classList.add('dark');
+        } else if (theme === 'light') {
+          root.classList.remove('dark');
+        } else {
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          if (prefersDark) {
+            root.classList.add('dark');
+          } else {
+            root.classList.remove('dark');
+          }
+        }
       },
 
       loadSeedData: () => {

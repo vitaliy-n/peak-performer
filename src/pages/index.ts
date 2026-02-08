@@ -4,6 +4,8 @@ export { Goals } from './Goals';
 export { Habits } from './Habits';
 export { Tasks } from './Tasks';
 export { Journal } from './Journal';
+export { Pomodoro } from './Pomodoro';
+export { WeeklyReview } from './WeeklyReview';
 export { Analytics } from './Analytics';
 export { Achievements } from './Achievements';
 export { Premium } from './Premium';

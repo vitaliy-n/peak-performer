@@ -9,7 +9,8 @@ import {
   MoreVertical,
   Trash2,
   Edit,
-  TrendingUp
+  TrendingUp,
+  Repeat
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { Card, CardContent, CardHeader, CardTitle, Button, Modal, Input, Textarea } from '../components/ui';
@@ -200,9 +201,16 @@ export const Habits: React.FC = () => {
           </div>
 
           {habits.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
-              <p className="mb-2">У вас ще немає звичок</p>
-              <Button variant="outline" onClick={() => setIsModalOpen(true)}>
+            <div className="text-center py-16">
+              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Repeat className="w-10 h-10 text-green-500" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Почніть будувати звички</h3>
+              <p className="text-gray-500 mb-1 max-w-sm mx-auto">
+                "Ви не піднімаєтесь до рівня своїх цілей — ви опускаєтесь до рівня своїх систем"
+              </p>
+              <p className="text-sm text-gray-400 mb-6">— Джеймс Клір, Atomic Habits</p>
+              <Button onClick={() => setIsModalOpen(true)}>
                 <Plus className="w-4 h-4 mr-2" />
                 Створити першу звичку
               </Button>
