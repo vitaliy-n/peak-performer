@@ -14,7 +14,12 @@ import {
   Menu,
   X,
   Timer,
-  ClipboardCheck
+  ClipboardCheck,
+  GraduationCap,
+  DollarSign,
+  Heart,
+  Brain,
+  Library
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { LEVEL_NAMES, LEVEL_POINTS } from '../types';
@@ -58,8 +63,13 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { icon: <BookOpen className="w-5 h-5" />, label: 'Журнал', view: 'journal' },
     { icon: <Timer className="w-5 h-5" />, label: 'Помодоро', view: 'pomodoro' },
     { icon: <ClipboardCheck className="w-5 h-5" />, label: 'Тижневий огляд', view: 'weekly-review' },
+    { icon: <GraduationCap className="w-5 h-5" />, label: 'Навчання', view: 'learning' },
+    { icon: <DollarSign className="w-5 h-5" />, label: 'Фінанси', view: 'finance' },
+    { icon: <Heart className="w-5 h-5" />, label: "Здоров'я", view: 'health' },
+    { icon: <Brain className="w-5 h-5" />, label: 'Мислення', view: 'mindset' },
     { icon: <BarChart3 className="w-5 h-5" />, label: 'Аналітика', view: 'analytics' },
     { icon: <Trophy className="w-5 h-5" />, label: 'Досягнення', view: 'achievements' },
+    { icon: <Library className="w-5 h-5" />, label: 'Бібліотека', view: 'library' },
   ];
 
   const currentLevel = user?.level || 1;

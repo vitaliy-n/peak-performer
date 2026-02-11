@@ -15,6 +15,11 @@ import {
   Premium,
   Settings,
   Onboarding,
+  Learning,
+  Finance,
+  Health,
+  Mindset,
+  Library,
 } from './pages';
 
 function App() {
@@ -56,6 +61,16 @@ function App() {
         return <Premium />;
       case 'settings':
         return <Settings />;
+      case 'learning':
+        return <Learning />;
+      case 'finance':
+        return <Finance />;
+      case 'health':
+        return <Health />;
+      case 'mindset':
+        return <Mindset />;
+      case 'library':
+        return <Library />;
       default:
         return <Dashboard />;
     }

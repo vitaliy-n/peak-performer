@@ -11,3 +11,8 @@ export { Achievements } from './Achievements';
 export { Premium } from './Premium';
 export { Settings } from './Settings';
 export { Onboarding } from './Onboarding';
+export { Learning } from './Learning';
+export { Finance } from './Finance';
+export { Health } from './Health';
+export { Mindset } from './Mindset';
+export { Library } from './Library';
