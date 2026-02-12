@@ -37,11 +37,9 @@ const SEVEN_RULES = [
 ];
 
 export const Finance: React.FC = () => {
-  const { addPoints } = useStore();
+  const { finance, addFinanceEntry, deleteFinanceEntry, toggleSevenRule, updateFireData } = useStore();
   const [activeTab, setActiveTab] = useState<'tracker' | 'rules' | 'fire'>('tracker');
-  const [entries, setEntries] = useState<FinanceEntry[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const [checkedRules, setCheckedRules] = useState<Record<string, boolean>>({});
 
   const [form, setForm] = useState({
     type: 'expense' as FinanceEntry['type'],
@@ -50,40 +48,28 @@ export const Finance: React.FC = () => {
     description: '',
   });
 
-  // FIRE calculator state
-  const [fireData, setFireData] = useState({
-    annualExpenses: 30000,
-    currentSavings: 10000,
-    annualSavings: 15000,
-    expectedReturn: 7,
-  });
-
   const handleAddEntry = (e: React.FormEvent) => {
     e.preventDefault();
-    const entry: FinanceEntry = {
-      id: Date.now().toString(),
+    addFinanceEntry({
       type: form.type,
       category: form.category,
       amount: form.amount,
       description: form.description,
-      date: new Date().toISOString(),
-    };
-    setEntries(prev => [...prev, entry]);
+    });
     setShowModal(false);
     setForm({ type: 'expense', category: '', amount: 0, description: '' });
-    addPoints(5);
   };
 
-  const totalIncome = entries.filter(e => e.type === 'income').reduce((s, e) => s + e.amount, 0);
-  const totalExpenses = entries.filter(e => e.type === 'expense').reduce((s, e) => s + e.amount, 0);
-  const totalSavings = entries.filter(e => e.type === 'saving').reduce((s, e) => s + e.amount, 0);
-  const totalInvestments = entries.filter(e => e.type === 'investment').reduce((s, e) => s + e.amount, 0);
+  const totalIncome = finance.entries.filter(e => e.type === 'income').reduce((s, e) => s + e.amount, 0);
+  const totalExpenses = finance.entries.filter(e => e.type === 'expense').reduce((s, e) => s + e.amount, 0);
+  const totalSavings = finance.entries.filter(e => e.type === 'saving').reduce((s, e) => s + e.amount, 0);
+  const totalInvestments = finance.entries.filter(e => e.type === 'investment').reduce((s, e) => s + e.amount, 0);
   const savingsRate = totalIncome > 0 ? Math.round(((totalSavings + totalInvestments) / totalIncome) * 100) : 0;
 
   // FIRE calculations
-  const fiNumber = fireData.annualExpenses * 25;
-  const yearsToFI = fireData.annualSavings > 0
-    ? Math.log((fiNumber * (fireData.expectedReturn / 100) + fireData.annualSavings) / (fireData.currentSavings * (fireData.expectedReturn / 100) + fireData.annualSavings)) / Math.log(1 + fireData.expectedReturn / 100)
+  const fiNumber = finance.fireData.annualExpenses * 25;
+  const yearsToFI = finance.fireData.annualSavings > 0
+    ? Math.log((fiNumber * (finance.fireData.expectedReturn / 100) + finance.fireData.annualSavings) / (finance.fireData.currentSavings * (finance.fireData.expectedReturn / 100) + finance.fireData.annualSavings)) / Math.log(1 + finance.fireData.expectedReturn / 100)
     : 0;
 
   // Conscious Spending Plan (Ramit Sethi)
@@ -211,7 +197,7 @@ export const Finance: React.FC = () => {
             </Button>
           </div>
 
-          {entries.length === 0 ? (
+          {finance.entries.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
                 <DollarSign className="w-12 h-12 text-green-300 mx-auto mb-4" />
@@ -223,7 +209,7 @@ export const Finance: React.FC = () => {
             </Card>
           ) : (
             <div className="space-y-2">
-              {entries.slice().reverse().map(entry => (
+              {finance.entries.slice().reverse().map(entry => (
                 <Card key={entry.id}>
                   <CardContent className="py-3">
                     <div className="flex items-center gap-4">
@@ -241,7 +227,7 @@ export const Finance: React.FC = () => {
                       <span className={`font-bold ${entry.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
                         {entry.type === 'income' ? '+' : '-'}${entry.amount.toLocaleString()}
                       </span>
-                      <button onClick={() => setEntries(prev => prev.filter(e => e.id !== entry.id))} className="p-1 hover:bg-red-50 rounded text-red-400">
+                      <button onClick={() => deleteFinanceEntry(entry.id)} className="p-1 hover:bg-red-50 rounded text-red-400">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -267,13 +253,9 @@ export const Finance: React.FC = () => {
             {SEVEN_RULES.map((item, index) => (
               <button
                 key={item.key}
-                onClick={() => {
-                  const newChecked = { ...checkedRules, [item.key]: !checkedRules[item.key] };
-                  setCheckedRules(newChecked);
-                  if (!checkedRules[item.key]) addPoints(5);
-                }}
+                onClick={() => toggleSevenRule(item.key)}
                 className={`w-full flex items-center gap-4 p-5 rounded-xl border-2 text-left transition-all ${
-                  checkedRules[item.key]
+                  finance.sevenRulesCompleted[item.key]
                     ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
                     : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300'
                 }`}
@@ -283,11 +265,11 @@ export const Finance: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-gray-400">Правило {index + 1}</span>
                   </div>
-                  <p className={`font-semibold text-lg ${checkedRules[item.key] ? 'text-green-700 dark:text-green-400' : 'text-gray-900 dark:text-gray-100'}`}>
+                  <p className={`font-semibold text-lg ${finance.sevenRulesCompleted[item.key] ? 'text-green-700 dark:text-green-400' : 'text-gray-900 dark:text-gray-100'}`}>
                     {item.rule}
                   </p>
                 </div>
-                {checkedRules[item.key] && (
+                {finance.sevenRulesCompleted[item.key] && (
                   <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white">✓</div>
                 )}
               </button>
@@ -296,7 +278,7 @@ export const Finance: React.FC = () => {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-500">
-              Виконано: {Object.values(checkedRules).filter(Boolean).length} / {SEVEN_RULES.length} правил
+              Виконано: {Object.values(finance.sevenRulesCompleted).filter(Boolean).length} / {SEVEN_RULES.length} правил
             </p>
           </div>
         </div>
@@ -320,10 +302,10 @@ export const Finance: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Input label="Річні витрати ($)" type="number" value={fireData.annualExpenses} onChange={e => setFireData({ ...fireData, annualExpenses: Number(e.target.value) })} />
-                <Input label="Поточні заощадження ($)" type="number" value={fireData.currentSavings} onChange={e => setFireData({ ...fireData, currentSavings: Number(e.target.value) })} />
-                <Input label="Річні заощадження ($)" type="number" value={fireData.annualSavings} onChange={e => setFireData({ ...fireData, annualSavings: Number(e.target.value) })} />
-                <Input label="Очікувана дохідність (%)" type="number" value={fireData.expectedReturn} onChange={e => setFireData({ ...fireData, expectedReturn: Number(e.target.value) })} />
+                <Input label="Річні витрати ($)" type="number" value={finance.fireData.annualExpenses} onChange={e => updateFireData({ annualExpenses: Number(e.target.value) })} />
+                <Input label="Поточні заощадження ($)" type="number" value={finance.fireData.currentSavings} onChange={e => updateFireData({ currentSavings: Number(e.target.value) })} />
+                <Input label="Річні заощадження ($)" type="number" value={finance.fireData.annualSavings} onChange={e => updateFireData({ annualSavings: Number(e.target.value) })} />
+                <Input label="Очікувана дохідність (%)" type="number" value={finance.fireData.expectedReturn} onChange={e => updateFireData({ expectedReturn: Number(e.target.value) })} />
               </CardContent>
             </Card>
 
@@ -350,12 +332,12 @@ export const Finance: React.FC = () => {
                   <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl text-center">
                     <p className="text-sm text-gray-500 mb-1">Прогрес до FI</p>
                     <p className="text-3xl font-bold text-purple-600">
-                      {fiNumber > 0 ? Math.min(100, Math.round((fireData.currentSavings / fiNumber) * 100)) : 0}%
+                      {fiNumber > 0 ? Math.min(100, Math.round((finance.fireData.currentSavings / fiNumber) * 100)) : 0}%
                     </p>
                     <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mt-2">
                       <div
                         className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
-                        style={{ width: `${Math.min(100, (fireData.currentSavings / fiNumber) * 100)}%` }}
+                        style={{ width: `${Math.min(100, (finance.fireData.currentSavings / fiNumber) * 100)}%` }}
                       />
                     </div>
                   </div>
@@ -363,8 +345,8 @@ export const Finance: React.FC = () => {
                   {/* Compound Interest */}
                   <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
                     <p className="text-sm text-amber-700 dark:text-amber-400">
-                      <strong>Compound Interest:</strong> ${fireData.currentSavings.toLocaleString()} через 10 років при {fireData.expectedReturn}% = $
-                      {Math.round(fireData.currentSavings * Math.pow(1 + fireData.expectedReturn / 100, 10)).toLocaleString()}
+                      <strong>Compound Interest:</strong> ${finance.fireData.currentSavings.toLocaleString()} через 10 років при {finance.fireData.expectedReturn}% = $
+                      {Math.round(finance.fireData.currentSavings * Math.pow(1 + finance.fireData.expectedReturn / 100, 10)).toLocaleString()}
                     </p>
                   </div>
                 </div>

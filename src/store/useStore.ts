@@ -2,7 +2,20 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 import { format, startOfDay } from 'date-fns';
-import type { User, Goal, Habit, Task, Project, DailyLog, JournalEntry, Achievement } from '../types';
+import type {
+  User,
+  Goal,
+  Habit,
+  Task,
+  Project,
+  DailyLog,
+  JournalEntry,
+  Achievement,
+  FinanceEntry,
+  FinanceState,
+  Book,
+  ReadingSession,
+} from '../types';
 import {
   SEED_USER,
   SEED_HABITS,
@@ -25,8 +38,14 @@ interface AppState {
   journalEntries: JournalEntry[];
   achievements: Achievement[];
   inbox: string[];
+  books: Book[];
+  readingSessions: ReadingSession[];
   currentView: string;
   theme: 'light' | 'dark' | 'auto';
+  tourRunning: boolean;
+  
+  // Finance state
+  finance: FinanceState;
   
   // User actions
   initUser: (name: string) => void;
@@ -65,6 +84,12 @@ interface AppState {
   updateJournalEntry: (id: string, updates: Partial<JournalEntry>) => void;
   deleteJournalEntry: (id: string) => void;
   
+  // Reading actions
+  addBook: (book: Omit<Book, 'id' | 'createdAt' | 'lastUpdated'>) => void;
+  updateBook: (id: string, updates: Partial<Book>) => void;
+  deleteBook: (id: string) => void;
+  addReadingSession: (session: Omit<ReadingSession, 'id' | 'date'>) => void;
+
   // Inbox actions
   addToInbox: (item: string) => void;
   removeFromInbox: (index: number) => void;
@@ -73,11 +98,19 @@ interface AppState {
   // Achievement actions
   unlockAchievement: (id: string) => void;
   
+  // Finance actions
+  addFinanceEntry: (entry: Omit<FinanceEntry, 'id' | 'date'>) => void;
+  updateFinanceEntry: (id: string, updates: Partial<FinanceEntry>) => void;
+  deleteFinanceEntry: (id: string) => void;
+  toggleSevenRule: (ruleKey: string) => void;
+  updateFireData: (data: Partial<FinanceState['fireData']>) => void;
+  
   // Navigation
   setCurrentView: (view: string) => void;
   
   // Theme
   setTheme: (theme: 'light' | 'dark' | 'auto') => void;
+  setTourRunning: (running: boolean) => void;
   
   // Seed data
   loadSeedData: () => void;
@@ -122,8 +155,23 @@ export const useStore = create<AppState>()(
       journalEntries: [],
       achievements: DEFAULT_ACHIEVEMENTS,
       inbox: [],
+      books: [],
+      readingSessions: [],
       currentView: 'dashboard',
-      theme: 'light',
+      theme: 'auto',
+      tourRunning: false,
+      
+      // Finance state
+      finance: {
+        entries: [],
+        sevenRulesCompleted: {},
+        fireData: {
+          annualExpenses: 30000,
+          currentSavings: 10000,
+          annualSavings: 15000,
+          expectedReturn: 7,
+        },
+      },
 
       initUser: (name: string) => {
         const user: User = {
@@ -458,8 +506,94 @@ export const useStore = create<AppState>()(
 
       deleteJournalEntry: (id) => {
         set((state) => ({
-          journalEntries: state.journalEntries.filter((e) => e.id !== id),
+          journalEntries: state.journalEntries.filter((entry) => entry.id !== id),
         }));
+      },
+
+      addBook: (bookInput) => {
+        const {
+          pagesRead = 0,
+          totalPages = 0,
+          dailyPagesGoal = 10,
+          favorite = false,
+          topIdeas = [],
+          status = 'reading',
+          ...rest
+        } = bookInput;
+
+        const now = new Date().toISOString();
+        const newBook: Book = {
+          id: uuidv4(),
+          createdAt: now,
+          lastUpdated: now,
+          pagesRead,
+          totalPages,
+          dailyPagesGoal,
+          favorite,
+          topIdeas,
+          status,
+          ...rest,
+        } as Book;
+
+        set((state) => ({ books: [...state.books, newBook] }));
+      },
+
+      updateBook: (id, updates) => {
+        set((state) => ({
+          books: state.books.map((book) =>
+            book.id === id
+              ? { ...book, ...updates, lastUpdated: new Date().toISOString() }
+              : book
+          ),
+        }));
+      },
+
+      deleteBook: (id) => {
+        set((state) => ({
+          books: state.books.filter((book) => book.id !== id),
+          readingSessions: state.readingSessions.filter((session) => session.bookId !== id),
+        }));
+      },
+
+      addReadingSession: ({ bookId, pagesRead, durationMinutes, focusLevel, mood, notes }) => {
+        set((state) => {
+          const book = state.books.find((b) => b.id === bookId);
+          if (!book) return state;
+
+          const increment = Math.max(0, pagesRead);
+          const newPagesRead = Math.min(book.totalPages || Infinity, book.pagesRead + increment);
+          const updatedBook: Book = {
+            ...book,
+            pagesRead: newPagesRead,
+            status:
+              book.totalPages > 0 && newPagesRead >= book.totalPages ? 'completed' : book.status,
+            completedAt:
+              book.totalPages > 0 && newPagesRead >= book.totalPages
+                ? book.completedAt ?? new Date().toISOString()
+                : book.completedAt,
+            lastUpdated: new Date().toISOString(),
+          };
+
+          const session: ReadingSession = {
+            id: uuidv4(),
+            bookId,
+            date: new Date().toISOString(),
+            pagesRead: increment,
+            durationMinutes,
+            focusLevel,
+            mood,
+            notes,
+          };
+
+          if (increment > 0) {
+            get().addPoints(increment * POINTS.readPage);
+          }
+
+          return {
+            books: state.books.map((b) => (b.id === bookId ? updatedBook : b)),
+            readingSessions: [session, ...state.readingSessions].slice(0, 100),
+          };
+        });
       },
 
       addToInbox: (item) => {
@@ -497,6 +631,66 @@ export const useStore = create<AppState>()(
         });
       },
 
+      // Finance actions
+      addFinanceEntry: (entry) => {
+        set((state) => ({
+          finance: {
+            ...state.finance,
+            entries: [...state.finance.entries, {
+              ...entry,
+              id: uuidv4(),
+              date: new Date().toISOString(),
+            }],
+          },
+        }));
+        get().addPoints(5);
+      },
+
+      updateFinanceEntry: (id, updates) => {
+        set((state) => ({
+          finance: {
+            ...state.finance,
+            entries: state.finance.entries.map((entry) =>
+              entry.id === id ? { ...entry, ...updates } : entry
+            ),
+          },
+        }));
+      },
+
+      deleteFinanceEntry: (id) => {
+        set((state) => ({
+          finance: {
+            ...state.finance,
+            entries: state.finance.entries.filter((entry) => entry.id !== id),
+          },
+        }));
+      },
+
+      toggleSevenRule: (ruleKey) => {
+        set((state) => ({
+          finance: {
+            ...state.finance,
+            sevenRulesCompleted: {
+              ...state.finance.sevenRulesCompleted,
+              [ruleKey]: !state.finance.sevenRulesCompleted[ruleKey],
+            },
+          },
+        }));
+        get().addPoints(5);
+      },
+
+      updateFireData: (data) => {
+        set((state) => ({
+          finance: {
+            ...state.finance,
+            fireData: {
+              ...state.finance.fireData,
+              ...data,
+            },
+          },
+        }));
+      },
+
       setCurrentView: (view) => {
         set({ currentView: view });
       },
@@ -516,6 +710,10 @@ export const useStore = create<AppState>()(
             root.classList.remove('dark');
           }
         }
+      },
+
+      setTourRunning: (running) => {
+        set({ tourRunning: running });
       },
 
       loadSeedData: () => {

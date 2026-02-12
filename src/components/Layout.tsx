@@ -30,12 +30,13 @@ interface NavItemProps {
   view: string;
   active: boolean;
   onClick: () => void;
+  tourClass?: string;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ icon, label, active, onClick }) => (
+const NavItem: React.FC<NavItemProps> = ({ icon, label, active, onClick, tourClass }) => (
   <button
     onClick={onClick}
-    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${tourClass ?? ''} ${
       active
         ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
         : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100'
@@ -51,25 +52,25 @@ interface LayoutProps {
 }
 
 export const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const { user, currentView, setCurrentView } = useStore();
+  const { user, currentView, setCurrentView, setTourRunning } = useStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const navItems = [
-    { icon: <LayoutDashboard className="w-5 h-5" />, label: 'Дашборд', view: 'dashboard' },
+    { icon: <LayoutDashboard className="w-5 h-5" />, label: 'Дашборд', view: 'dashboard', tourClass: 'dashboard-tour' },
     { icon: <Sun className="w-5 h-5" />, label: 'Ранкова рутина', view: 'morning' },
     { icon: <Target className="w-5 h-5" />, label: 'Цілі', view: 'goals' },
-    { icon: <Repeat className="w-5 h-5" />, label: 'Звички', view: 'habits' },
+    { icon: <Repeat className="w-5 h-5" />, label: 'Звички', view: 'habits', tourClass: 'habits-tour' },
     { icon: <CheckSquare className="w-5 h-5" />, label: 'Завдання', view: 'tasks' },
     { icon: <BookOpen className="w-5 h-5" />, label: 'Журнал', view: 'journal' },
     { icon: <Timer className="w-5 h-5" />, label: 'Помодоро', view: 'pomodoro' },
     { icon: <ClipboardCheck className="w-5 h-5" />, label: 'Тижневий огляд', view: 'weekly-review' },
-    { icon: <GraduationCap className="w-5 h-5" />, label: 'Навчання', view: 'learning' },
-    { icon: <DollarSign className="w-5 h-5" />, label: 'Фінанси', view: 'finance' },
-    { icon: <Heart className="w-5 h-5" />, label: "Здоров'я", view: 'health' },
-    { icon: <Brain className="w-5 h-5" />, label: 'Мислення', view: 'mindset' },
+    { icon: <GraduationCap className="w-5 h-5" />, label: 'Навчання', view: 'learning', tourClass: 'learning-tour' },
+    { icon: <DollarSign className="w-5 h-5" />, label: 'Фінанси', view: 'finance', tourClass: 'finance-tour' },
+    { icon: <Heart className="w-5 h-5" />, label: "Здоров'я", view: 'health', tourClass: 'health-tour' },
+    { icon: <Brain className="w-5 h-5" />, label: 'Мислення', view: 'mindset', tourClass: 'mindset-tour' },
     { icon: <BarChart3 className="w-5 h-5" />, label: 'Аналітика', view: 'analytics' },
     { icon: <Trophy className="w-5 h-5" />, label: 'Досягнення', view: 'achievements' },
-    { icon: <Library className="w-5 h-5" />, label: 'Бібліотека', view: 'library' },
+    { icon: <Library className="w-5 h-5" />, label: 'Бібліотека', view: 'library', tourClass: 'library-tour' },
   ];
 
   const currentLevel = user?.level || 1;
@@ -129,6 +130,12 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 style={{ width: `${Math.min(100, progressToNextLevel)}%` }}
               />
             </div>
+            <button
+              onClick={() => setTourRunning(true)}
+              className="mt-3 w-full text-xs font-semibold px-3 py-2 bg-blue-100/70 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+            >
+              Почати тур
+            </button>
           </div>
         </div>
       )}
@@ -143,6 +150,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             view={item.view}
             active={currentView === item.view}
             onClick={() => handleNavClick(item.view)}
+            tourClass={item.tourClass}
           />
         ))}
       </nav>
@@ -152,7 +160,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="p-4 border-t border-gray-100 dark:border-gray-700">
           <button 
             onClick={() => handleNavClick('premium')}
-            className="w-full bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-lg p-3 flex items-center justify-center gap-2 font-medium hover:from-amber-500 hover:to-orange-600 transition-colors"
+            className="premium-tour w-full bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-lg p-3 flex items-center justify-center gap-2 font-medium hover:from-amber-500 hover:to-orange-600 transition-colors"
           >
             <Crown className="w-5 h-5" />
             Отримати Premium

@@ -216,11 +216,63 @@ export interface Quote {
 
 export interface MethodologyTip {
   id: string;
-  methodology: string;
-  author: string;
+  methodologyId: string;
+  tip: string;
+  category: string;
+}
+
+export type BookStatus = 'reading' | 'completed' | 'wishlist';
+
+export interface Book {
+  id: string;
   title: string;
+  author: string;
+  category: string;
+  coverUrl?: string;
+  why: string;
+  topIdeas: string[];
+  rating: number;
+  status: BookStatus;
+  pagesRead: number;
+  totalPages: number;
+  dailyPagesGoal: number;
+  favorite: boolean;
+  startedAt?: string;
+  completedAt?: string;
+  lastUpdated: string;
+  createdAt: string;
+  notes?: string;
+}
+
+export interface ReadingSession {
+  id: string;
+  bookId: string;
+  date: string;
+  pagesRead: number;
+  durationMinutes?: number;
+  focusLevel?: 'flow' | 'deep' | 'light';
+  mood?: 'energized' | 'calm' | 'tired';
+  notes?: string;
+}
+
+export interface FinanceEntry {
+  id: string;
+  type: 'income' | 'expense' | 'saving' | 'investment';
+  category: string;
+  amount: number;
   description: string;
-  actionItem: string;
+  date: string;
+}
+
+export interface FinanceState {
+  entries: FinanceEntry[];
+  sevenRulesCompleted: Record<string, boolean>;
+  fireData: {
+    annualExpenses: number;
+    currentSavings: number;
+    annualSavings: number;
+    expectedReturn: number;
+  };
 }
 
 export const LIFE_AREA_LABELS: Record<LifeArea, string> = {
