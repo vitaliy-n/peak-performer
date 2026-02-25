@@ -39,15 +39,6 @@ export const Onboarding: React.FC = () => {
   const [selectedValues, setSelectedValues] = useState<string[]>([]);
 
   const handleNext = () => {
-    if (step === 1 && name.trim()) {
-      initUser(name.trim());
-    }
-    if (step === 2) {
-      updateUser({ missionStatement: mission });
-    }
-    if (step === 3) {
-      updateUser({ coreValues: selectedValues });
-    }
     setStep(step + 1);
   };
 
@@ -61,6 +52,15 @@ export const Onboarding: React.FC = () => {
     } else if (selectedValues.length < 5) {
       setSelectedValues([...selectedValues, value]);
     }
+  };
+
+  const handleComplete = () => {
+    // Batch all updates at the end
+    initUser(name.trim() || 'Користувач', 'guest');
+    updateUser({ 
+      missionStatement: mission,
+      coreValues: selectedValues 
+    });
   };
 
   const canProceed = () => {
@@ -274,7 +274,7 @@ export const Onboarding: React.FC = () => {
             )}
             
             <Button 
-              onClick={handleNext}
+              onClick={step === 4 ? handleComplete : handleNext}
               disabled={!canProceed()}
               className={step === 4 ? 'w-full' : ''}
             >
@@ -290,7 +290,6 @@ export const Onboarding: React.FC = () => {
             onClick={() => {
               if (step === 1 && !name.trim()) {
                 setName('Користувач');
-                initUser('Користувач');
               }
               setStep(4);
             }}

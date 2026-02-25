@@ -4,9 +4,11 @@ import { Layout } from './components/Layout';
 import {
   Dashboard,
   Onboarding,
+  LoginPage
 } from './pages';
 import { Loader2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
 // Lazy loaded heavy pages
 const MorningRoutine = lazy(() => import('./pages').then(module => ({ default: module.MorningRoutine })));
@@ -43,12 +45,7 @@ function App() {
     if (user) {
       checkStreak();
     }
-  }, [user?.id]); // Check streak when user loads/changes
-
-  // Show onboarding if no user
-  if (!user) {
-    return <Onboarding />;
-  }
+  }, [user?.id, theme, setTheme, checkStreak]);
 
   const getViewComponent = () => {
     switch (currentView) {
@@ -95,23 +92,40 @@ function App() {
     }
   };
 
+  // If no user, show login or onboarding
+  if (!user) {
+    return (
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/guest" element={<Onboarding />} /> {/* Guest flow can go through onboarding or direct init */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    );
+  }
+
   return (
-    <Layout>
-      <Suspense fallback={<PageLoader />}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentView}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="h-full"
-          >
-            {getViewComponent()}
-          </motion.div>
-        </AnimatePresence>
-      </Suspense>
-    </Layout>
+    <Routes>
+       <Route path="/login" element={<Navigate to="/" replace />} />
+       <Route path="/*" element={
+          <Layout>
+            <Suspense fallback={<PageLoader />}>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentView}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  className="h-full"
+                >
+                  {getViewComponent()}
+                </motion.div>
+              </AnimatePresence>
+            </Suspense>
+          </Layout>
+       } />
+    </Routes>
   );
 }
 

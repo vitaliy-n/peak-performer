@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Moon,
+  Flame,
   Dumbbell,
   Wind,
   Battery,
@@ -10,6 +10,8 @@ import {
   CheckCircle2,
   Snowflake,
   UtensilsCrossed,
+  Swords,
+  Moon
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { Card, CardContent, CardHeader, CardTitle, Button, Input } from '../components/ui';
@@ -30,6 +32,19 @@ const SLEEP_HYGIENE_TIPS = [
   { tip: 'Немає алкоголю перед сном', checked: false },
 ];
 
+const TATE_BARBELL_COMPLEX = [
+  { name: 'Deadlift', reps: 10 },
+  { name: 'Bent Over Row', reps: 10 },
+  { name: 'Upright Row', reps: 10 },
+  { name: 'Overhead Press', reps: 10 },
+  { name: 'Good Morning', reps: 10 },
+  { name: 'Back Squat', reps: 10 },
+  { name: 'Front Squat', reps: 10 },
+  { name: 'Lunge (Left+Right)', reps: 10 },
+  { name: 'Bicep Curl', reps: 10 },
+  { name: 'Calf Raise / Jump Squat', reps: 10 },
+];
+
 export const Health: React.FC = () => {
   const { 
     health, 
@@ -41,7 +56,7 @@ export const Health: React.FC = () => {
     addPoints
   } = useStore();
   
-  const [activeTab, setActiveTab] = useState<'sleep' | 'exercise' | 'breathing' | 'energy' | 'fasting'>('sleep');
+  const [activeTab, setActiveTab] = useState<'sleep' | 'exercise' | 'breathing' | 'energy' | 'fasting' | 'hardcore'>('sleep');
 
   // Sleep state forms
   const [sleepForm, setSleepForm] = useState({ bedtime: '23:00', wakeTime: '07:00', quality: 7 });
@@ -63,6 +78,9 @@ export const Health: React.FC = () => {
   // Fasting state
   const [fastingElapsed, setFastingElapsed] = useState(0);
   const [selectedFastingWindow, setSelectedFastingWindow] = useState(16);
+  
+  // Hardcore state
+  const [complexCompleted, setComplexCompleted] = useState(false);
   
   // Breathing timer
   useEffect(() => {
@@ -194,6 +212,7 @@ export const Health: React.FC = () => {
     { key: 'breathing', label: 'Дихання', icon: Wind },
     { key: 'energy', label: 'Енергія', icon: Battery },
     { key: 'fasting', label: 'IF', icon: UtensilsCrossed },
+    { key: 'hardcore', label: 'Hardcore', icon: Swords },
   ];
 
   return (
@@ -556,6 +575,91 @@ export const Health: React.FC = () => {
                     {duration} ❄️
                   </Button>
                 ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Hardcore Tab (Andrew Tate) */}
+      {activeTab === 'hardcore' && (
+        <div className="max-w-2xl mx-auto space-y-6">
+          <Card className="border-red-500 border-2 shadow-red-500/20 shadow-lg">
+            <CardHeader className="bg-red-50 dark:bg-red-900/20">
+              <CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-400">
+                <Swords className="w-6 h-6" /> Iron Mind Complex (Andrew Tate Style)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="mb-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-xl">
+                <p className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-2">Правила:</p>
+                <ul className="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
+                  <li>Порожній гриф (20 кг) або легка вага</li>
+                  <li>10 вправ по 10 повторень</li>
+                  <li><strong>ЖОДНОГО ВІДПОЧИНКУ</strong> між вправами</li>
+                  <li>Гриф не повинен торкатися землі до кінця кола</li>
+                  <li>Роби це, коли не хочеш. Особливо, коли не хочеш.</li>
+                </ul>
+              </div>
+
+              <div className="space-y-2 mb-6">
+                {TATE_BARBELL_COMPLEX.map((ex, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <span className="w-6 h-6 flex items-center justify-center bg-red-100 text-red-700 rounded-full text-xs font-bold">
+                        {i + 1}
+                      </span>
+                      <span className="font-medium text-gray-900 dark:text-gray-100">{ex.name}</span>
+                    </div>
+                    <span className="font-bold text-gray-500">x{ex.reps}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="text-center">
+                {!complexCompleted ? (
+                  <Button 
+                    onClick={() => {
+                      addExerciseEntry({
+                        date: new Date().toISOString().split('T')[0],
+                        type: 'Iron Mind Complex',
+                        duration: 10,
+                        intensity: 'high'
+                      });
+                      addPoints(50);
+                      setComplexCompleted(true);
+                    }}
+                    className="w-full py-6 text-lg bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    <Flame className="w-6 h-6 mr-2" /> ЗАРАХУВАТИ КОМПЛЕКС (+50 XP)
+                  </Button>
+                ) : (
+                  <div className="p-4 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-xl font-bold text-lg animate-pulse">
+                    UNMATCHED PERSPICACITY! 🔥
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Daily Challenges</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                <div>
+                  <h3 className="font-bold text-gray-900 dark:text-gray-100">500 Push-ups</h3>
+                  <p className="text-sm text-gray-500">Розбий на сети протягом дня</p>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => addPoints(20)}>Done (+20 XP)</Button>
+              </div>
+              <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                <div>
+                  <h3 className="font-bold text-gray-900 dark:text-gray-100">100 Burpees</h3>
+                  <p className="text-sm text-gray-500">На час. Спробуй вийти з 10 хв.</p>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => addPoints(30)}>Done (+30 XP)</Button>
               </div>
             </CardContent>
           </Card>

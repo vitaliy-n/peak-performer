@@ -62,24 +62,28 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const navItems = [
-    { icon: <LayoutDashboard className="w-5 h-5" />, label: 'Дашборд', view: 'dashboard', tourClass: 'dashboard-tour' },
-    { icon: <Bot className="w-5 h-5" />, label: 'AI Coach', view: 'ai-coach', tourClass: 'ai-coach-tour' },
-    { icon: <Sun className="w-5 h-5" />, label: 'Ранкова рутина', view: 'morning' },
-    { icon: <Target className="w-5 h-5" />, label: 'Цілі', view: 'goals' },
-    { icon: <Calendar className="w-5 h-5" />, label: '12 Тижнів', view: '12-week-year' },
-    { icon: <Repeat className="w-5 h-5" />, label: 'Звички', view: 'habits', tourClass: 'habits-tour' },
-    { icon: <CheckSquare className="w-5 h-5" />, label: 'Завдання', view: 'tasks' },
-    { icon: <BookOpen className="w-5 h-5" />, label: 'Журнал', view: 'journal' },
-    { icon: <Timer className="w-5 h-5" />, label: 'Помодоро', view: 'pomodoro' },
-    { icon: <ClipboardCheck className="w-5 h-5" />, label: 'Тижневий огляд', view: 'weekly-review' },
-    { icon: <GraduationCap className="w-5 h-5" />, label: 'Навчання', view: 'learning', tourClass: 'learning-tour' },
-    { icon: <DollarSign className="w-5 h-5" />, label: 'Фінанси', view: 'finance', tourClass: 'finance-tour' },
-    { icon: <Heart className="w-5 h-5" />, label: "Здоров'я", view: 'health', tourClass: 'health-tour' },
-    { icon: <Brain className="w-5 h-5" />, label: 'Мислення', view: 'mindset', tourClass: 'mindset-tour' },
-    { icon: <BarChart3 className="w-5 h-5" />, label: 'Аналітика', view: 'analytics' },
-    { icon: <Trophy className="w-5 h-5" />, label: 'Досягнення', view: 'achievements' },
-    { icon: <Library className="w-5 h-5" />, label: 'Бібліотека', view: 'library', tourClass: 'library-tour' },
+    { icon: <LayoutDashboard className="w-5 h-5" />, label: 'Дашборд', view: 'dashboard', tourClass: 'dashboard-tour', roles: ['admin', 'guest'] },
+    { icon: <Bot className="w-5 h-5" />, label: 'AI Coach', view: 'ai-coach', tourClass: 'ai-coach-tour', roles: ['admin'] },
+    { icon: <Sun className="w-5 h-5" />, label: 'Ранкова рутина', view: 'morning', roles: ['admin', 'guest'] },
+    { icon: <Target className="w-5 h-5" />, label: 'Цілі', view: 'goals', roles: ['admin', 'guest'] },
+    { icon: <Calendar className="w-5 h-5" />, label: '12 Тижнів', view: '12-week-year', roles: ['admin'] },
+    { icon: <Repeat className="w-5 h-5" />, label: 'Звички', view: 'habits', tourClass: 'habits-tour', roles: ['admin', 'guest'] },
+    { icon: <CheckSquare className="w-5 h-5" />, label: 'Завдання', view: 'tasks', roles: ['admin', 'guest'] },
+    { icon: <BookOpen className="w-5 h-5" />, label: 'Журнал', view: 'journal', roles: ['admin', 'guest'] },
+    { icon: <Timer className="w-5 h-5" />, label: 'Помодоро', view: 'pomodoro', roles: ['admin', 'guest'] },
+    { icon: <ClipboardCheck className="w-5 h-5" />, label: 'Тижневий огляд', view: 'weekly-review', roles: ['admin'] },
+    { icon: <GraduationCap className="w-5 h-5" />, label: 'Навчання', view: 'learning', tourClass: 'learning-tour', roles: ['admin'] },
+    { icon: <DollarSign className="w-5 h-5" />, label: 'Фінанси', view: 'finance', tourClass: 'finance-tour', roles: ['admin'] },
+    { icon: <Heart className="w-5 h-5" />, label: "Здоров'я", view: 'health', tourClass: 'health-tour', roles: ['admin', 'guest'] },
+    { icon: <Brain className="w-5 h-5" />, label: 'Мислення', view: 'mindset', tourClass: 'mindset-tour', roles: ['admin'] },
+    { icon: <BarChart3 className="w-5 h-5" />, label: 'Аналітика', view: 'analytics', roles: ['admin'] },
+    { icon: <Trophy className="w-5 h-5" />, label: 'Досягнення', view: 'achievements', roles: ['admin'] },
+    { icon: <Library className="w-5 h-5" />, label: 'Бібліотека', view: 'library', tourClass: 'library-tour', roles: ['admin'] },
   ];
+
+  const filteredNavItems = navItems.filter(item => 
+    !user?.role || item.roles.includes(user.role) || (user.role === 'admin') // Admin sees all, guest sees specific
+  );
 
   const currentLevel = user?.level || 1;
   const currentPoints = user?.totalPoints || 0;
@@ -157,7 +161,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {navItems.map((item) => (
+        {filteredNavItems.map((item) => (
           <NavItem
             key={item.view}
             icon={item.icon}

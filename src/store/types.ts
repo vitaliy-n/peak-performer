@@ -14,6 +14,7 @@ import type { HealthSlice } from './slices/healthSlice';
 import type { MindsetSlice } from './slices/mindsetSlice';
 import type { LearningSlice } from './slices/learningSlice';
 import type { TwelveWeekYearSlice } from './slices/twelveWeekYearSlice';
+import type { AuthSlice } from './slices/authSlice';
 
 export type AppState = 
   & UserSlice 
@@ -32,6 +33,7 @@ export type AppState =
   & MindsetSlice
   & LearningSlice
   & TwelveWeekYearSlice
+  & AuthSlice
   & {
     loadSeedData: () => void;
     clearAllData: () => void;

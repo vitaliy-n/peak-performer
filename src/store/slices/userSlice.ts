@@ -9,7 +9,7 @@ export interface UserSlice {
   theme: 'light' | 'dark' | 'oled' | 'auto';
   tourRunning: boolean;
   
-  initUser: (name: string) => void;
+  initUser: (name: string, role?: 'admin' | 'guest') => void;
   updateUser: (updates: Partial<User>) => void;
   addPoints: (points: number) => void;
   checkStreak: () => void;
@@ -24,7 +24,7 @@ export const createUserSlice: StateCreator<AppState, [], [], UserSlice> = (set, 
   theme: 'auto',
   tourRunning: false,
 
-  initUser: (name: string) => {
+  initUser: (name: string, role: 'admin' | 'guest' = 'guest') => {
     const user: User = {
       id: uuidv4(),
       name,
@@ -45,6 +45,7 @@ export const createUserSlice: StateCreator<AppState, [], [], UserSlice> = (set, 
       achievements: [],
       isPremium: false,
       subscriptionType: 'free',
+      role,
     };
     set({ user });
   },

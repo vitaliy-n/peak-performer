@@ -18,3 +18,4 @@ export { Mindset } from './Mindset';
 export { Library } from './Library';
 export { AICoach } from './AICoach';
 export { TwelveWeekYearPage } from './TwelveWeekYear';
+export { LoginPage } from './Login';

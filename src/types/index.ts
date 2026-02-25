@@ -45,6 +45,7 @@ export interface User {
   achievements: string[];
   isPremium: boolean;
   subscriptionType: 'free' | 'premium' | 'pro' | 'lifetime';
+  role?: 'admin' | 'guest';
 }
 
 export interface Goal {

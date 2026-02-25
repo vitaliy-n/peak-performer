@@ -1,8 +1,30 @@
 import { v4 as uuidv4 } from 'uuid';
 import { format, subDays } from 'date-fns';
-import type { User, Goal, Habit, Task, Project, DailyLog, JournalEntry, Achievement } from '../types';
+import type { User, Goal, Habit, Task, Project, DailyLog, JournalEntry, Achievement, Skill, Book, FinanceState, MindsetState, HealthState, TwelveWeekYear, FeynmanNote, ReadingSession, AICoachState } from '../types';
 
 const USER_ID = 'demo-user-001';
+
+// Project IDs for linking tasks
+const PROJECT_SAAS_ID = uuidv4();
+const PROJECT_MARATHON_ID = uuidv4();
+const PROJECT_RENOVATION_ID = uuidv4();
+const PROJECT_YOUTUBE_ID = uuidv4();
+
+// Goal IDs for linking
+const GOAL_SAAS_ID = uuidv4();
+const GOAL_AWS_ID = uuidv4();
+const GOAL_FINANCE_ID = uuidv4();
+const GOAL_MARATHON_ID = uuidv4();
+
+// Book IDs for linking
+const BOOK_ATOMIC_HABITS_ID = uuidv4();
+const BOOK_DEEP_WORK_ID = uuidv4();
+const BOOK_PSYCHOLOGY_MONEY_ID = uuidv4();
+const BOOK_MEDITATIONS_ID = uuidv4();
+const BOOK_ZERO_TO_ONE_ID = uuidv4();
+const BOOK_CANT_HURT_ME_ID = uuidv4();
+const BOOK_ESSENTIALISM_ID = uuidv4();
+const BOOK_PRINCIPLES_ID = uuidv4();
 
 // Generate dates for the last N days
 const getDateString = (daysAgo: number) => format(subDays(new Date(), daysAgo), 'yyyy-MM-dd');
@@ -58,6 +80,7 @@ export const SEED_USER: User = {
   achievements: ['first_frog', 'habit_starter', 'streak_7', 'goal_setter', 'journaler', 'morning_master'],
   isPremium: true,
   subscriptionType: 'premium',
+  role: 'guest',
 };
 
 const habitHistoryMeditation = generateHabitHistory(45, 0.85);
@@ -245,13 +268,57 @@ export const SEED_HABITS: Habit[] = [
     createdAt: getISOString(30),
     color: '#7C3AED',
     icon: '🧠'
+  },
+  {
+    id: uuidv4(),
+    userId: USER_ID,
+    title: 'Холодний душ',
+    description: '2 хвилини холодної води для дисципліни та імунітету',
+    cue: 'Після ранкового тренування',
+    craving: 'Відчуття непереможності з самого ранку',
+    response: 'Вмикаю холодну воду на 2 хв',
+    reward: 'Дофаміновий буст на 3 години',
+    identity: 'Я роблю важкі речі, навіть коли не хочеться',
+    frequency: 'daily',
+    targetDays: [0, 1, 2, 3, 4, 5, 6],
+    reminderTime: '06:45',
+    afterHabit: 'Ранкове тренування',
+    currentStreak: 5,
+    longestStreak: 10,
+    totalCompletions: 15,
+    completionHistory: generateHabitHistory(15, 0.9),
+    createdAt: getISOString(15),
+    color: '#0EA5E9',
+    icon: '❄️'
+  },
+  {
+    id: uuidv4(),
+    userId: USER_ID,
+    title: 'Networking Outreach',
+    description: 'Написати 3 новим людям з моєї індустрії',
+    cue: 'Після обіду',
+    craving: 'Нові можливості та партнерства',
+    response: 'Відправляю 3 персоналізованих повідомлення в LinkedIn/Twitter',
+    reward: 'Розширення мережі контактів',
+    identity: 'Я є конектором та лідером думок',
+    frequency: 'weekdays',
+    targetDays: [1, 2, 3, 4, 5],
+    reminderTime: '14:00',
+    afterHabit: null,
+    currentStreak: 3,
+    longestStreak: 3,
+    totalCompletions: 8,
+    completionHistory: generateHabitHistory(10, 0.8),
+    createdAt: getISOString(10),
+    color: '#F97316',
+    icon: '🤝'
   }
 ];
 
 export const SEED_GOALS: Goal[] = [
   // Career Goals
   {
-    id: uuidv4(),
+    id: GOAL_SAAS_ID,
     userId: USER_ID,
     title: 'Запустити SaaS продукт',
     description: 'Створити та запустити власний SaaS продукт з MRR $10K',
@@ -268,10 +335,10 @@ export const SEED_GOALS: Goal[] = [
     parentGoalId: null,
     subGoals: [],
     actionSteps: [
-      { id: uuidv4(), goalId: '', description: 'Провести дослідження ринку', priority: 'A', context: '@комп\'ютер', estimatedTime: 120, dueDate: null, completed: true, completedAt: getISOString(85) },
-      { id: uuidv4(), goalId: '', description: 'Створити MVP', priority: 'A', context: '@комп\'ютер', estimatedTime: 480, dueDate: null, completed: true, completedAt: getISOString(60) },
-      { id: uuidv4(), goalId: '', description: 'Запустити бета-версію', priority: 'A', context: '@комп\'ютер', estimatedTime: 120, dueDate: null, completed: true, completedAt: getISOString(30) },
-      { id: uuidv4(), goalId: '', description: 'Залучити перших 100 користувачів', priority: 'A', context: '@комп\'ютер', estimatedTime: 240, dueDate: getDateString(-30), completed: false, completedAt: null },
+      { id: uuidv4(), goalId: GOAL_SAAS_ID, description: 'Провести дослідження ринку', priority: 'A', context: '@комп\'ютер', estimatedTime: 120, dueDate: null, completed: true, completedAt: getISOString(85) },
+      { id: uuidv4(), goalId: GOAL_SAAS_ID, description: 'Створити MVP', priority: 'A', context: '@комп\'ютер', estimatedTime: 480, dueDate: null, completed: true, completedAt: getISOString(60) },
+      { id: uuidv4(), goalId: GOAL_SAAS_ID, description: 'Запустити бета-версію', priority: 'A', context: '@комп\'ютер', estimatedTime: 120, dueDate: null, completed: true, completedAt: getISOString(30) },
+      { id: uuidv4(), goalId: GOAL_SAAS_ID, description: 'Залучити перших 100 користувачів', priority: 'A', context: '@комп\'ютер', estimatedTime: 240, dueDate: getDateString(-30), completed: false, completedAt: null },
     ],
     status: 'active',
     progress: 25,
@@ -279,7 +346,7 @@ export const SEED_GOALS: Goal[] = [
     updatedAt: getISOString(1),
   },
   {
-    id: uuidv4(),
+    id: GOAL_AWS_ID,
     userId: USER_ID,
     title: 'Отримати сертифікацію AWS',
     description: 'Здати екзамен AWS Solutions Architect Professional',
@@ -303,7 +370,7 @@ export const SEED_GOALS: Goal[] = [
   },
   // Financial Goals
   {
-    id: uuidv4(),
+    id: GOAL_FINANCE_ID,
     userId: USER_ID,
     title: 'Накопичити $50K резервний фонд',
     description: 'Створити фінансову подушку безпеки на 6 місяців витрат',
@@ -350,7 +417,7 @@ export const SEED_GOALS: Goal[] = [
   },
   // Health Goals
   {
-    id: uuidv4(),
+    id: GOAL_MARATHON_ID,
     userId: USER_ID,
     title: 'Пробігти напівмарафон',
     description: 'Підготуватися та пробігти 21.1 км',
@@ -367,9 +434,9 @@ export const SEED_GOALS: Goal[] = [
     parentGoalId: null,
     subGoals: [],
     actionSteps: [
-      { id: uuidv4(), goalId: '', description: 'Бігати 3 рази на тиждень', priority: 'A', context: '@вулиця', estimatedTime: 60, dueDate: null, completed: false, completedAt: null },
-      { id: uuidv4(), goalId: '', description: 'Пробігти 10 км', priority: 'B', context: '@вулиця', estimatedTime: 60, dueDate: null, completed: true, completedAt: getISOString(45) },
-      { id: uuidv4(), goalId: '', description: 'Пробігти 15 км', priority: 'B', context: '@вулиця', estimatedTime: 90, dueDate: null, completed: false, completedAt: null },
+      { id: uuidv4(), goalId: GOAL_MARATHON_ID, description: 'Бігати 3 рази на тиждень', priority: 'A', context: '@вулиця', estimatedTime: 60, dueDate: null, completed: false, completedAt: null },
+      { id: uuidv4(), goalId: GOAL_MARATHON_ID, description: 'Пробігти 10 км', priority: 'B', context: '@вулиця', estimatedTime: 60, dueDate: null, completed: true, completedAt: getISOString(45) },
+      { id: uuidv4(), goalId: GOAL_MARATHON_ID, description: 'Пробігти 15 км', priority: 'B', context: '@вулиця', estimatedTime: 90, dueDate: null, completed: false, completedAt: null },
     ],
     status: 'active',
     progress: 45,
@@ -518,6 +585,69 @@ export const SEED_GOALS: Goal[] = [
     createdAt: getISOString(90),
     updatedAt: getISOString(15),
   },
+  // Personal Brand
+  {
+    id: uuidv4(),
+    userId: USER_ID,
+    title: 'Побудувати особистий бренд',
+    description: 'Стати визнаним експертом у своїй ніші',
+    why: 'Вплив, нові можливості, незалежність від роботодавця',
+    lifeArea: 'career',
+    timeframe: 'yearly',
+    priority: 'A',
+    specific: '10,000 підписників на LinkedIn та Twitter',
+    measurable: 'Сумарна аудиторія',
+    targetValue: 10000,
+    currentValue: 1200,
+    startDate: getISOString(30),
+    targetDate: '2026-12-31',
+    parentGoalId: null,
+    subGoals: [],
+    actionSteps: [],
+    status: 'active',
+    progress: 12,
+    createdAt: getISOString(30),
+    updatedAt: getISOString(2),
+  },
+];
+
+export const SEED_PROJECTS: Project[] = [
+  {
+    id: PROJECT_SAAS_ID,
+    userId: USER_ID,
+    title: 'Запуск SaaS продукту',
+    description: 'Всі задачі пов\'язані з розробкою та запуском продукту',
+    status: 'active',
+    tasks: [],
+    createdAt: getISOString(90),
+  },
+  {
+    id: PROJECT_MARATHON_ID,
+    userId: USER_ID,
+    title: 'Підготовка до напівмарафону',
+    description: 'Тренувальний план та підготовка',
+    status: 'active',
+    tasks: [],
+    createdAt: getISOString(60),
+  },
+  {
+    id: PROJECT_RENOVATION_ID,
+    userId: USER_ID,
+    title: 'Ремонт квартири',
+    description: 'Косметичний ремонт кабінету',
+    status: 'someday',
+    tasks: [],
+    createdAt: getISOString(120),
+  },
+  {
+    id: PROJECT_YOUTUBE_ID,
+    userId: USER_ID,
+    title: 'YouTube Канал (Personal Brand)',
+    description: 'Запуск та розвиток каналу про продуктивність та бізнес',
+    status: 'active',
+    tasks: [],
+    createdAt: getISOString(15),
+  },
 ];
 
 export const SEED_TASKS: Task[] = [
@@ -534,8 +664,39 @@ export const SEED_TASKS: Task[] = [
     completed: false,
     completedAt: null,
     isFrog: true,
-    projectId: null,
+    projectId: PROJECT_SAAS_ID,
     createdAt: getISOString(3),
+  },
+  // YouTube Tasks
+  {
+    id: uuidv4(),
+    userId: USER_ID,
+    title: 'Написати сценарій для відео "Як прокидатися о 5:00"',
+    description: 'Структура: хук, історія, 3 поради, call to action.',
+    priority: 'A',
+    context: '@комп\'ютер',
+    estimatedTime: 90,
+    dueDate: getDateString(1),
+    completed: false,
+    completedAt: null,
+    isFrog: false,
+    projectId: PROJECT_YOUTUBE_ID,
+    createdAt: getISOString(2),
+  },
+  {
+    id: uuidv4(),
+    userId: USER_ID,
+    title: 'Замовити обкладинку для відео',
+    description: 'ТЗ для дизайнера: яскравий колір, емоція на обличчі, текст "Секрет 5:00".',
+    priority: 'B',
+    context: '@комп\'ютер',
+    estimatedTime: 15,
+    dueDate: getDateString(2),
+    completed: false,
+    completedAt: null,
+    isFrog: false,
+    projectId: PROJECT_YOUTUBE_ID,
+    createdAt: getISOString(1),
   },
   // Priority A tasks
   {
@@ -550,7 +711,7 @@ export const SEED_TASKS: Task[] = [
     completed: false,
     completedAt: null,
     isFrog: false,
-    projectId: null,
+    projectId: PROJECT_SAAS_ID,
     createdAt: getISOString(1),
   },
   {
@@ -565,7 +726,7 @@ export const SEED_TASKS: Task[] = [
     completed: false,
     completedAt: null,
     isFrog: false,
-    projectId: null,
+    projectId: PROJECT_SAAS_ID,
     createdAt: getISOString(1),
   },
   {
@@ -580,7 +741,7 @@ export const SEED_TASKS: Task[] = [
     completed: false,
     completedAt: null,
     isFrog: false,
-    projectId: null,
+    projectId: PROJECT_SAAS_ID,
     createdAt: getISOString(5),
   },
   // Priority B tasks
@@ -642,7 +803,7 @@ export const SEED_TASKS: Task[] = [
     completed: false,
     completedAt: null,
     isFrog: false,
-    projectId: null,
+    projectId: PROJECT_RENOVATION_ID,
     createdAt: getISOString(14),
   },
   {
@@ -703,42 +864,349 @@ export const SEED_TASKS: Task[] = [
     completed: true,
     completedAt: new Date().toISOString(),
     isFrog: false,
-    projectId: null,
+    projectId: PROJECT_SAAS_ID,
     createdAt: getISOString(0),
   },
 ];
 
-export const SEED_PROJECTS: Project[] = [
+export const SEED_SKILLS: Skill[] = [
+  // Business & Entrepreneurship
+  { id: uuidv4(), name: 'Продажі та переговори', category: 'Business', totalMinutes: 1200, targetMinutes: 10000, subSkills: ['Cold calling', 'Closing', 'Handling objections', 'CRM'], notes: 'Основа будь-якого бізнесу.', createdAt: getISOString(90) },
+  { id: uuidv4(), name: 'Маркетинг', category: 'Business', totalMinutes: 800, targetMinutes: 5000, subSkills: ['Copywriting', 'SEO', 'PPC', 'Brand building'], notes: 'Як залучати клієнтів.', createdAt: getISOString(60) },
+  { id: uuidv4(), name: 'Фінансова грамотність', category: 'Business', totalMinutes: 600, targetMinutes: 2000, subSkills: ['Budgeting', 'Investing', 'Taxes', 'Financial modeling'], notes: 'Управління грошима.', createdAt: getISOString(45) },
+  { id: uuidv4(), name: 'Лідерство та менеджмент', category: 'Business', totalMinutes: 1500, targetMinutes: 10000, subSkills: ['Delegation', 'Hiring', 'Motivation', 'Strategy'], notes: 'Як керувати командою.', createdAt: getISOString(120) },
+  { id: uuidv4(), name: 'Публічні виступи', category: 'Business', totalMinutes: 300, targetMinutes: 1000, subSkills: ['Storytelling', 'Body language', 'Slide design', 'Voice control'], notes: 'Вміння переконувати аудиторію.', createdAt: getISOString(30) },
+  
+  // Technology & Digital
+  { id: uuidv4(), name: 'Програмування (Full Stack)', category: 'Technology', totalMinutes: 5000, targetMinutes: 10000, subSkills: ['React', 'Node.js', 'TypeScript', 'Database design'], notes: 'Створення програмних продуктів.', createdAt: getISOString(365) },
+  { id: uuidv4(), name: 'AI & Prompt Engineering', category: 'Technology', totalMinutes: 200, targetMinutes: 1000, subSkills: ['ChatGPT', 'Midjourney', 'LLM integration', 'Automation'], notes: 'Використання ШІ для продуктивності.', createdAt: getISOString(15) },
+  { id: uuidv4(), name: 'Data Analysis', category: 'Technology', totalMinutes: 400, targetMinutes: 2000, subSkills: ['Excel', 'SQL', 'Python Pandas', 'Visualization'], notes: 'Прийняття рішень на основі даних.', createdAt: getISOString(45) },
+  { id: uuidv4(), name: 'UI/UX Design', category: 'Technology', totalMinutes: 300, targetMinutes: 1500, subSkills: ['Figma', 'User research', 'Prototyping', 'Color theory'], notes: 'Створення зручних інтерфейсів.', createdAt: getISOString(30) },
+  { id: uuidv4(), name: 'Відеомонтаж', category: 'Technology', totalMinutes: 150, targetMinutes: 1000, subSkills: ['Premiere Pro', 'Storyboarding', 'Sound design', 'Color grading'], notes: 'Створення контенту для YouTube/Socials.', createdAt: getISOString(20) },
+
+  // Personal Effectiveness (Soft Skills)
+  { id: uuidv4(), name: 'Тайм-менеджмент', category: 'Productivity', totalMinutes: 500, targetMinutes: 1000, subSkills: ['Planning', 'Prioritization', 'Deep Work', 'Systems'], notes: 'Керування часом та увагою.', createdAt: getISOString(60) },
+  { id: uuidv4(), name: 'Критичне мислення', category: 'Productivity', totalMinutes: 200, targetMinutes: 5000, subSkills: ['Logic', 'Cognitive biases', 'Mental models', 'Problem solving'], notes: 'Як думати ясно та ефективно.', createdAt: getISOString(30) },
+  { id: uuidv4(), name: 'Емоційний інтелект', category: 'Productivity', totalMinutes: 300, targetMinutes: 3000, subSkills: ['Empathy', 'Self-regulation', 'Social skills', 'Motivation'], notes: 'Розуміння себе та інших.', createdAt: getISOString(45) },
+  { id: uuidv4(), name: 'Швидкочитання', category: 'Productivity', totalMinutes: 50, targetMinutes: 200, subSkills: ['Scanning', 'Subvocalization control', 'Peripheral vision'], notes: 'Швидке засвоєння інформації.', createdAt: getISOString(10) },
+  { id: uuidv4(), name: 'Сліпий друк', category: 'Productivity', totalMinutes: 600, targetMinutes: 600, subSkills: ['Touch typing', 'Shortcuts', 'Vim'], notes: 'Швидкість роботи за комп\'ютером.', createdAt: getISOString(90) },
+
+  // Languages
+  { id: uuidv4(), name: 'Англійська мова (C1-C2)', category: 'Languages', totalMinutes: 3000, targetMinutes: 5000, subSkills: ['Speaking', 'Writing', 'Listening', 'Vocabulary'], notes: 'Мова міжнародного спілкування.', createdAt: getISOString(730) },
+  { id: uuidv4(), name: 'Іспанська мова', category: 'Languages', totalMinutes: 100, targetMinutes: 2000, subSkills: ['Basics', 'Conversation', 'Grammar'], notes: 'Друга найпопулярніша мова.', createdAt: getISOString(30) },
+
+  // Health & Biohacking
+  { id: uuidv4(), name: 'Нутриціологія', category: 'Health', totalMinutes: 200, targetMinutes: 1000, subSkills: ['Macros', 'Micros', 'Supplements', 'Meal planning'], notes: 'Вплив їжі на енергію та здоров\'я.', createdAt: getISOString(45) },
+  { id: uuidv4(), name: 'Фізіологія тренувань', category: 'Health', totalMinutes: 300, targetMinutes: 1500, subSkills: ['Anatomy', 'Biomechanics', 'Recovery', 'Programming'], notes: 'Ефективна робота з тілом.', createdAt: getISOString(60) },
+  { id: uuidv4(), name: 'Медитація та Mindfulness', category: 'Health', totalMinutes: 400, targetMinutes: 2000, subSkills: ['Focus', 'Stress reduction', 'Breathwork', 'Vipassana'], notes: 'Керування станом свідомості.', createdAt: getISOString(90) },
+  { id: uuidv4(), name: 'Сон та відновлення', category: 'Health', totalMinutes: 100, targetMinutes: 500, subSkills: ['Circadian rhythms', 'Sleep hygiene', 'Chronotypes'], notes: 'Основа продуктивності.', createdAt: getISOString(20) },
+
+  // Creative & Others
+  { id: uuidv4(), name: 'Сторітелінг', category: 'Creative', totalMinutes: 150, targetMinutes: 2000, subSkills: ['Structure', 'Character development', 'Metaphors', 'Humor'], notes: 'Мистецтво розповідати історії.', createdAt: getISOString(30) },
+  { id: uuidv4(), name: 'Фотографія', category: 'Creative', totalMinutes: 50, targetMinutes: 1000, subSkills: ['Composition', 'Lighting', 'Editing', 'Camera settings'], notes: 'Візуальне мистецтво.', createdAt: getISOString(10) },
+  { id: uuidv4(), name: 'Психологія поведінки', category: 'Science', totalMinutes: 400, targetMinutes: 3000, subSkills: ['Habit formation', 'Motivation', 'Influence', 'Group dynamics'], notes: 'Чому люди роблять те, що роблять.', createdAt: getISOString(60) },
+  { id: uuidv4(), name: 'Стратегічне мислення', category: 'Business', totalMinutes: 300, targetMinutes: 5000, subSkills: ['Game theory', 'Scenario planning', 'Risk assessment'], notes: 'Бачення довгострокової перспективи.', createdAt: getISOString(45) },
+  { id: uuidv4(), name: 'Нетворкінг', category: 'Business', totalMinutes: 200, targetMinutes: 1000, subSkills: ['Active listening', 'Relationship building', 'Follow-up', 'Social capital'], notes: 'Побудова мережі контактів.', createdAt: getISOString(30) },
+  { id: uuidv4(), name: 'Навчання як вчитися', category: 'Productivity', totalMinutes: 100, targetMinutes: 500, subSkills: ['Active recall', 'Spaced repetition', 'Feynman technique', 'Mind mapping'], notes: 'Метанавичка для швидкого навчання.', createdAt: getISOString(15) },
+  { id: uuidv4(), name: 'Перша медична допомога', category: 'Health', totalMinutes: 20, targetMinutes: 100, subSkills: ['CPR', 'Bandaging', 'Emergency response'], notes: 'Життєво важлива навичка.', createdAt: getISOString(5) },
+  { id: uuidv4(), name: 'Кулінарія', category: 'Creative', totalMinutes: 1000, targetMinutes: 5000, subSkills: ['Knife skills', 'Flavor pairing', 'Techniques', 'Baking'], notes: 'Приготування смачної та здорової їжі.', createdAt: getISOString(365) },
+  { id: uuidv4(), name: 'Штучний інтелект (теорія)', category: 'Technology', totalMinutes: 50, targetMinutes: 1000, subSkills: ['Neural networks', 'Machine learning basics', 'Ethics', 'Future trends'], notes: 'Розуміння технологій майбутнього.', createdAt: getISOString(10) },
+];
+
+export const SEED_BOOKS: Book[] = [
   {
-    id: uuidv4(),
-    userId: USER_ID,
-    title: 'Запуск SaaS продукту',
-    description: 'Всі задачі пов\'язані з розробкою та запуском продукту',
-    status: 'active',
-    tasks: [],
+    id: BOOK_ATOMIC_HABITS_ID,
+    title: 'Atomic Habits',
+    author: 'James Clear',
+    category: 'Productivity',
+    why: 'Щоб побудувати систему звичок, яка працює на автоматі.',
+    topIdeas: ['1% better every day', 'Identity-based habits', 'Systems > Goals'],
+    rating: 5,
+    status: 'completed',
+    pagesRead: 320,
+    totalPages: 320,
+    dailyPagesGoal: 20,
+    favorite: true,
+    startedAt: getISOString(60),
+    completedAt: getISOString(45),
+    lastUpdated: getISOString(45),
+    createdAt: getISOString(60),
+    notes: 'Найкраща книга про звички. Перечитувати щороку.'
+  },
+  {
+    id: BOOK_DEEP_WORK_ID,
+    title: 'Deep Work',
+    author: 'Cal Newport',
+    category: 'Productivity',
+    why: 'Навчитися фокусуватися в епоху відволікань.',
+    topIdeas: ['Deep vs Shallow work', 'Embrace boredom', 'Quit social media'],
+    rating: 5,
+    status: 'completed',
+    pagesRead: 280,
+    totalPages: 280,
+    dailyPagesGoal: 20,
+    favorite: true,
+    startedAt: getISOString(40),
+    completedAt: getISOString(30),
+    lastUpdated: getISOString(30),
+    createdAt: getISOString(40),
+  },
+  {
+    id: BOOK_PSYCHOLOGY_MONEY_ID,
+    title: 'The Psychology of Money',
+    author: 'Morgan Housel',
+    category: 'Finance',
+    why: 'Зрозуміти свою поведінку з грошима.',
+    topIdeas: ['Getting wealthy vs Staying wealthy', 'Compounding', 'Freedom'],
+    rating: 5,
+    status: 'reading',
+    pagesRead: 145,
+    totalPages: 250,
+    dailyPagesGoal: 15,
+    favorite: false,
+    startedAt: getISOString(10),
+    lastUpdated: getISOString(1),
+    createdAt: getISOString(10),
+  },
+  {
+    id: BOOK_MEDITATIONS_ID,
+    title: 'Meditations',
+    author: 'Marcus Aurelius',
+    category: 'Philosophy',
+    why: 'Стоїцизм як операційна система для життя.',
+    topIdeas: ['Control your perception', 'Memento Mori', 'Amor Fati'],
+    rating: 5,
+    status: 'reading',
+    pagesRead: 45,
+    totalPages: 200,
+    dailyPagesGoal: 5,
+    favorite: true,
+    startedAt: getISOString(15),
+    lastUpdated: getISOString(2),
+    createdAt: getISOString(15),
+  },
+  {
+    id: BOOK_ZERO_TO_ONE_ID,
+    title: 'Zero to One',
+    author: 'Peter Thiel',
+    category: 'Business',
+    why: 'Як створювати щось нове, а не копіювати.',
+    topIdeas: ['Competition is for losers', 'Secrets', 'Monopoly'],
+    rating: 4,
+    status: 'completed',
+    pagesRead: 210,
+    totalPages: 210,
+    dailyPagesGoal: 20,
+    favorite: false,
+    startedAt: getISOString(90),
+    completedAt: getISOString(85),
+    lastUpdated: getISOString(85),
     createdAt: getISOString(90),
   },
   {
-    id: uuidv4(),
-    userId: USER_ID,
-    title: 'Підготовка до напівмарафону',
-    description: 'Тренувальний план та підготовка',
-    status: 'active',
-    tasks: [],
-    createdAt: getISOString(60),
+    id: BOOK_CANT_HURT_ME_ID,
+    title: 'Can\'t Hurt Me',
+    author: 'David Goggins',
+    category: 'Biography',
+    why: 'Розвиток ментальної стійкості.',
+    topIdeas: ['The 40% Rule', 'Callouse your mind', 'Cookie Jar'],
+    rating: 5,
+    status: 'wishlist',
+    pagesRead: 0,
+    totalPages: 360,
+    dailyPagesGoal: 20,
+    favorite: false,
+    lastUpdated: getISOString(5),
+    createdAt: getISOString(5),
   },
   {
-    id: uuidv4(),
-    userId: USER_ID,
-    title: 'Ремонт квартири',
-    description: 'Косметичний ремонт кабінету',
-    status: 'someday',
-    tasks: [],
-    createdAt: getISOString(120),
+    id: BOOK_ESSENTIALISM_ID,
+    title: 'Essentialism',
+    author: 'Greg McKeown',
+    category: 'Productivity',
+    why: 'Робити менше, але краще.',
+    topIdeas: ['Less but better', 'The power of No', 'Protect the asset'],
+    rating: 4,
+    status: 'wishlist',
+    pagesRead: 0,
+    totalPages: 270,
+    dailyPagesGoal: 20,
+    favorite: false,
+    lastUpdated: getISOString(5),
+    createdAt: getISOString(5),
+  },
+  {
+    id: BOOK_PRINCIPLES_ID,
+    title: 'Principles',
+    author: 'Ray Dalio',
+    category: 'Business',
+    why: 'Систематизація життя та роботи.',
+    topIdeas: ['Radical Truth', 'Radical Transparency', 'Idea Meritocracy'],
+    rating: 5,
+    status: 'wishlist',
+    pagesRead: 0,
+    totalPages: 590,
+    dailyPagesGoal: 10,
+    favorite: false,
+    lastUpdated: getISOString(5),
+    createdAt: getISOString(5),
   },
 ];
 
-// Generate daily logs for the past 14 days
+export const SEED_FEYNMAN_NOTES: FeynmanNote[] = [
+  {
+    id: uuidv4(),
+    concept: 'Compound Interest',
+    simpleExplanation: 'Compound interest is earning interest on your interest. Imagine a snowball rolling down a hill. It starts small, but as it rolls, it picks up more snow (interest), and that new snow helps it pick up even MORE snow. Over time, it grows exponentially.',
+    gaps: 'Need to better understand the formula and how different compounding frequencies affect the final amount.',
+    analogy: 'Snowball effect',
+    createdAt: getISOString(10),
+  },
+  {
+    id: uuidv4(),
+    concept: 'Dopamine Detox',
+    simpleExplanation: 'A dopamine detox is like a reset button for your brain\'s reward system. By avoiding high-stimulation activities (social media, junk food, video games) for a set period, you lower your tolerance. This makes hard, boring tasks (like studying or working) feel more rewarding and easier to do.',
+    gaps: 'How long should it ideally last? 24 hours vs 7 days.',
+    analogy: 'Fasting for the mind',
+    createdAt: getISOString(5),
+  }
+];
+
+export const SEED_READING_SESSIONS: ReadingSession[] = [
+  // Atomic Habits sessions
+  { id: uuidv4(), bookId: BOOK_ATOMIC_HABITS_ID, date: getISOString(55), pagesRead: 50, durationMinutes: 60, focusLevel: 'flow', mood: 'energized', notes: 'Great intro about 1% improvements.' },
+  { id: uuidv4(), bookId: BOOK_ATOMIC_HABITS_ID, date: getISOString(50), pagesRead: 100, durationMinutes: 120, focusLevel: 'deep', mood: 'calm', notes: 'Concept of Identity is powerful.' },
+  { id: uuidv4(), bookId: BOOK_ATOMIC_HABITS_ID, date: getISOString(45), pagesRead: 170, durationMinutes: 180, focusLevel: 'deep', mood: 'energized', notes: 'Finished the book. Must implement the 2-minute rule.' },
+  // Deep Work sessions
+  { id: uuidv4(), bookId: BOOK_DEEP_WORK_ID, date: getISOString(35), pagesRead: 100, durationMinutes: 90, focusLevel: 'deep', mood: 'calm' },
+  { id: uuidv4(), bookId: BOOK_DEEP_WORK_ID, date: getISOString(30), pagesRead: 180, durationMinutes: 150, focusLevel: 'flow', mood: 'energized', notes: 'Quit social media chapter hit hard.' },
+  // Recent sessions
+  { id: uuidv4(), bookId: BOOK_PSYCHOLOGY_MONEY_ID, date: getDateString(0), pagesRead: 20, durationMinutes: 30, focusLevel: 'light', mood: 'calm' },
+];
+
+export const SEED_AI_CHAT: AICoachState = {
+  messages: [
+    { id: uuidv4(), role: 'user', content: 'I feel overwhelmed with my SaaS project. Where do I start?', createdAt: getISOString(2), type: 'text' },
+    { id: uuidv4(), role: 'assistant', content: 'It\'s normal to feel that way. Let\'s break it down using the "Eat That Frog" method. What is the ONE most important task that, if completed, would have the biggest impact on your project today?', createdAt: getISOString(2), type: 'text' },
+    { id: uuidv4(), role: 'user', content: 'Fixing the authentication bug. It\'s blocking everything else.', createdAt: getISOString(2), type: 'text' },
+    { id: uuidv4(), role: 'assistant', content: 'Great. That is your Frog. 🐸\n\nCommit to doing NOTHING else until that bug is fixed. Can you set a 90-minute Deep Work block for this right now?', createdAt: getISOString(2), type: 'suggestion' },
+  ],
+  isTyping: false
+};
+
+export const SEED_FINANCE: FinanceState = {
+  entries: [
+    { id: uuidv4(), type: 'income', category: 'Salary', amount: 5000, description: 'Monthly Salary', date: getDateString(0) },
+    { id: uuidv4(), type: 'income', category: 'Freelance', amount: 1200, description: 'Consulting Project', date: getDateString(5) },
+    { id: uuidv4(), type: 'expense', category: 'Rent', amount: 1500, description: 'Apartment Rent', date: getDateString(1) },
+    { id: uuidv4(), type: 'expense', category: 'Food', amount: 400, description: 'Groceries & Restaurants', date: getDateString(2) },
+    { id: uuidv4(), type: 'expense', category: 'Transport', amount: 100, description: 'Uber & Fuel', date: getDateString(3) },
+    { id: uuidv4(), type: 'expense', category: 'Health', amount: 150, description: 'Gym & Supplements', date: getDateString(4) },
+    { id: uuidv4(), type: 'saving', category: 'Emergency Fund', amount: 1000, description: 'Monthly contribution', date: getDateString(0) },
+    { id: uuidv4(), type: 'investment', category: 'Stock Market', amount: 500, description: 'S&P 500 ETF', date: getDateString(0) },
+  ],
+  investments: [
+    { id: uuidv4(), name: 'S&P 500 (VOO)', category: 'etf', amountInvested: 15000, currentValue: 18500, lastUpdated: getISOString(0) },
+    { id: uuidv4(), name: 'Apple (AAPL)', category: 'stock', amountInvested: 5000, currentValue: 7200, lastUpdated: getISOString(0) },
+    { id: uuidv4(), name: 'Bitcoin (BTC)', category: 'crypto', amountInvested: 2000, currentValue: 3500, lastUpdated: getISOString(0) },
+    { id: uuidv4(), name: 'Real Estate Fund', category: 'real_estate', amountInvested: 10000, currentValue: 10500, lastUpdated: getISOString(0) },
+  ],
+  sevenRulesCompleted: {
+    'spend_less_than_earn': true,
+    'emergency_fund': true,
+    'invest_difference': true,
+    'avoid_bad_debt': true,
+  },
+  fireData: {
+    annualExpenses: 36000,
+    currentSavings: 39700, // Sum of investments + cash (implied)
+    annualSavings: 24000,
+    expectedReturn: 8,
+  }
+};
+
+export const SEED_MINDSET: MindsetState = {
+  cookieJar: [
+    { id: uuidv4(), victory: 'Пробіг марафон з травмою коліна', date: getISOString(365) },
+    { id: uuidv4(), victory: 'Закрив клієнта після 50 відмов', date: getISOString(120) },
+    { id: uuidv4(), victory: 'Вивчив React за 2 тижні і здав проект', date: getISOString(200) },
+    { id: uuidv4(), victory: 'Встав о 5:00 100 днів підряд', date: getISOString(10) },
+  ],
+  decisions: [
+    { id: uuidv4(), decision: 'Звільнитися з роботи і почати бізнес', reasoning: 'Стеля в зарплаті, хочу свободи', expectedOutcome: 'Складний рік, потім ріст', actualOutcome: 'Важко, але дохід х3 через 2 роки', lesson: 'Ризик виправданий, якщо є план', date: getISOString(700) },
+  ],
+  affirmations: [
+    { id: uuidv4(), text: 'Я дисциплінована машина, яка досягає будь-якої цілі', category: 'identity', usageCount: 45 },
+    { id: uuidv4(), text: 'Я створюю цінність і гроші приходять легко', category: 'growth', usageCount: 30 },
+    { id: uuidv4(), text: 'Я спокійний і впевнений у будь-якій ситуації', category: 'confidence', usageCount: 20 },
+  ],
+  visualizations: [
+    { id: uuidv4(), title: 'Ідеальний ранок', description: 'Прокидаюсь, повний енергії, холодний душ, робота над мрією', durationMinutes: 5, imageUrl: 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=800&auto=format&fit=crop&q=60' },
+    { id: uuidv4(), title: 'Запуск продукту', description: 'Натискаю кнопку "Deploy", бачу перших користувачів і оплати', durationMinutes: 10, imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=60' },
+  ]
+};
+
+export const SEED_HEALTH: HealthState = {
+  sleep: Array.from({ length: 7 }, (_, i) => ({
+    id: uuidv4(),
+    date: getDateString(6 - i),
+    bedtime: '22:00',
+    wakeTime: '05:00',
+    quality: 85 + Math.floor(Math.random() * 10),
+    hoursSlept: 7,
+  })),
+  exercise: [
+    { id: uuidv4(), date: getDateString(0), type: 'Iron Mind Complex', duration: 45, intensity: 'high' },
+    { id: uuidv4(), date: getDateString(1), type: '10km Run', duration: 55, intensity: 'medium' },
+    { id: uuidv4(), date: getDateString(2), type: 'Heavy Lifting (Chest)', duration: 60, intensity: 'high' },
+    { id: uuidv4(), date: getDateString(4), type: 'HIIT Cardio', duration: 30, intensity: 'high' },
+  ],
+  energy: Array.from({ length: 7 }, (_, i) => ({
+    id: uuidv4(),
+    date: getDateString(6 - i),
+    physical: 8 + Math.floor(Math.random() * 2),
+    emotional: 7 + Math.floor(Math.random() * 3),
+    mental: 8 + Math.floor(Math.random() * 2),
+    spiritual: 9,
+  })),
+  fasting: {
+    isFasting: true,
+    startTime: new Date(new Date().setHours(20, 0, 0, 0)).toISOString(),
+    targetDuration: 16,
+    history: Array.from({ length: 5 }, (_, i) => ({
+      id: uuidv4(),
+      startTime: subDays(new Date().setHours(20, 0, 0, 0), i + 1).toISOString(),
+      endTime: subDays(new Date().setHours(12, 0, 0, 0), i).toISOString(),
+      durationSeconds: 16 * 3600,
+      targetDuration: 16,
+    }))
+  }
+};
+
+export const SEED_12_WEEK_YEAR: TwelveWeekYear = {
+  id: uuidv4(),
+  title: 'SaaS Launch Sprint',
+  startDate: getDateString(0),
+  endDate: format(subDays(new Date(), -84), 'yyyy-MM-dd'),
+  goals: [GOAL_SAAS_ID, GOAL_AWS_ID, GOAL_FINANCE_ID],
+  status: 'active',
+  weeks: Array.from({ length: 12 }, (_, i) => ({
+    id: uuidv4(),
+    weekNumber: i + 1,
+    startDate: format(subDays(new Date(), -i * 7), 'yyyy-MM-dd'),
+    endDate: format(subDays(new Date(), -(i * 7 + 6)), 'yyyy-MM-dd'),
+    tactics: [
+      'Deploy MVP to Production',
+      'Write 5 SEO Articles',
+      'Contact 10 Potential Users',
+      'Study AWS for 5 hours',
+      'Transfer $500 to Investment Account'
+    ],
+    score: i === 0 ? 0 : Math.floor(Math.random() * 30) + 70, // Past weeks have scores, current is 0
+    notes: i === 0 ? 'Current week - focus on execution!' : 'Great progress, keep pushing.',
+  })),
+};
+
 export const SEED_DAILY_LOGS: DailyLog[] = Array.from({ length: 14 }, (_, i) => {
   const dayOffset = 13 - i;
   const date = getDateString(dayOffset);
@@ -977,24 +1445,27 @@ export const SEED_JOURNAL_ENTRIES: JournalEntry[] = [
 ];
 
 export const SEED_ACHIEVEMENTS: Achievement[] = [
-  { id: 'first_frog', name: 'Перша жаба', description: 'Виконайте свою першу "жабу"', icon: '🐸', points: 50, unlockedAt: getISOString(40), category: 'productivity' },
-  { id: 'early_bird', name: 'Рання пташка', description: 'Прокиньтесь о 5 ранку 7 днів поспіль', icon: '🌅', points: 200, unlockedAt: null, category: 'habits' },
-  { id: 'habit_starter', name: 'Початок звички', description: 'Створіть свою першу звичку', icon: '🌱', points: 25, unlockedAt: getISOString(45), category: 'habits' },
-  { id: 'streak_7', name: 'Тижневий streak', description: '7-денний streak будь-якої звички', icon: '🔥', points: 100, unlockedAt: getISOString(38), category: 'habits' },
-  { id: 'streak_30', name: 'Місячний streak', description: '30-денний streak будь-якої звички', icon: '💪', points: 500, unlockedAt: null, category: 'habits' },
-  { id: 'goal_setter', name: 'Ціль встановлена', description: 'Встановіть свою першу ціль', icon: '🎯', points: 25, unlockedAt: getISOString(44), category: 'goals' },
-  { id: 'goal_crusher', name: 'Досягнення цілі', description: 'Досягніть своєї першої цілі', icon: '🏆', points: 200, unlockedAt: getISOString(15), category: 'goals' },
-  { id: 'deep_worker', name: 'Глибока робота', description: '4 години глибокої роботи за день', icon: '🧠', points: 150, unlockedAt: getISOString(20), category: 'productivity' },
-  { id: 'journaler', name: 'Журналіст', description: 'Напишіть 10 записів у журналі', icon: '📝', points: 100, unlockedAt: getISOString(30), category: 'mindfulness' },
-  { id: 'reader', name: 'Читач', description: 'Прочитайте 100 сторінок', icon: '📚', points: 100, unlockedAt: getISOString(35), category: 'reading' },
-  { id: 'morning_master', name: 'Майстер ранку', description: 'Виконайте ранкову рутину 7 днів поспіль', icon: '☀️', points: 300, unlockedAt: getISOString(25), category: 'habits' },
+  { id: 'first_frog', name: 'Перша Жаба', description: 'Виконано перше завдання з пріоритетом А', icon: '🐸', points: 100, unlockedAt: getISOString(10), category: 'productivity' },
+  { id: 'habit_starter', name: 'Початок шляху', description: 'Створено першу звичку', icon: '🌱', points: 50, unlockedAt: getISOString(45), category: 'habits' },
+  { id: 'streak_7', name: 'Тиждень сили', description: 'Стрік виконання звичок 7 днів', icon: '🔥', points: 500, unlockedAt: getISOString(5), category: 'habits' },
+  { id: 'goal_setter', name: 'Цілеспрямований', description: 'Створено 3 активні цілі', icon: '🎯', points: 200, unlockedAt: getISOString(30), category: 'goals' },
+  { id: 'journaler', name: 'Літописець', description: '7 записів в журналі', icon: '✍️', points: 300, unlockedAt: getISOString(7), category: 'mindfulness' },
+  { id: 'morning_master', name: 'Володар ранку', description: 'Виконано ранкову рутину 5 разів підряд', icon: '🌅', points: 400, unlockedAt: getISOString(3), category: 'productivity' },
+  { id: 'reader', name: 'Книжковий хробак', description: 'Прочитано першу книгу', icon: '�', points: 250, unlockedAt: getISOString(15), category: 'reading' },
+  { id: 'investor', name: 'Інвестор', description: 'Створено фінансовий портфель', icon: '�', points: 500, unlockedAt: getISOString(2), category: 'special' },
+  { id: 'iron_mind', name: 'Залізна воля', description: 'Виконано тренування Iron Mind', icon: '💪', points: 1000, unlockedAt: getISOString(1), category: 'special' },
   { id: 'atomic', name: 'Атомні звички', description: '1% покращення 30 днів поспіль', icon: '⚛️', points: 1000, unlockedAt: null, category: 'special' },
 ];
 
 export const SEED_INBOX: string[] = [
-  'Перевірити нову бібліотеку для charts',
-  'Ідея: подкаст про продуктивність',
-  'Зателефонувати батькам',
-  'Купити подарунок на день народження',
-  'Дослідити можливості AI в продукті',
+  'Дослідити конкурентів для SaaS продукту (feature matrix)',
+  'Знайти ментора по маркетингу',
+  'Записатися на курс по публічним виступам',
+  'Купити нові бігові кросівки (Asics/Nike)',
+  'Оновити підписку на ChatGPT Plus',
+  'Ідея для відео: "Як я планую свій рік"',
+  'Переглянути інвестиційний портфель (ребалансування)',
+  'Подарунок для дружини на річницю',
+  'Налаштувати бекапи для сервера',
+  'Прочитати "Zero to One" ще раз'
 ];
