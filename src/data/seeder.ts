@@ -913,6 +913,74 @@ export const SEED_SKILLS: Skill[] = [
   { id: uuidv4(), name: 'Штучний інтелект (теорія)', category: 'Technology', totalMinutes: 50, targetMinutes: 1000, subSkills: ['Neural networks', 'Machine learning basics', 'Ethics', 'Future trends'], notes: 'Розуміння технологій майбутнього.', createdAt: getISOString(10) },
 ];
 
+// Presets for skill selection - different paths/personas
+export const SKILL_PRESETS = {
+  entrepreneur: [
+    { name: 'Продажі та переговори', category: 'Business', targetMinutes: 10000, subSkills: ['Cold calling', 'Closing', 'Handling objections', 'CRM'] },
+    { name: 'Маркетинг', category: 'Business', targetMinutes: 5000, subSkills: ['Copywriting', 'SEO', 'PPC', 'Brand building'] },
+    { name: 'Лідерство та менеджмент', category: 'Business', targetMinutes: 10000, subSkills: ['Delegation', 'Hiring', 'Motivation', 'Strategy'] },
+    { name: 'Фінансова грамотність', category: 'Business', targetMinutes: 2000, subSkills: ['Budgeting', 'Investing', 'Taxes', 'Financial modeling'] },
+    { name: 'Нетворкінг', category: 'Business', targetMinutes: 1000, subSkills: ['Active listening', 'Relationship building', 'Follow-up', 'Social capital'] },
+    { name: 'Стратегічне мислення', category: 'Business', targetMinutes: 5000, subSkills: ['Game theory', 'Scenario planning', 'Risk assessment'] },
+  ],
+  developer: [
+    { name: 'Програмування (Full Stack)', category: 'Technology', targetMinutes: 10000, subSkills: ['React', 'Node.js', 'TypeScript', 'Database design'] },
+    { name: 'AI & Prompt Engineering', category: 'Technology', targetMinutes: 1000, subSkills: ['ChatGPT', 'Midjourney', 'LLM integration', 'Automation'] },
+    { name: 'Data Analysis', category: 'Technology', targetMinutes: 2000, subSkills: ['Excel', 'SQL', 'Python Pandas', 'Visualization'] },
+    { name: 'Сліпий друк', category: 'Productivity', targetMinutes: 600, subSkills: ['Touch typing', 'Shortcuts', 'Vim'] },
+    { name: 'Тайм-менеджмент', category: 'Productivity', targetMinutes: 1000, subSkills: ['Planning', 'Prioritization', 'Deep Work', 'Systems'] },
+    { name: 'Англійська мова (C1-C2)', category: 'Languages', targetMinutes: 5000, subSkills: ['Speaking', 'Writing', 'Listening', 'Vocabulary'] },
+  ],
+  contentCreator: [
+    { name: 'Відеомонтаж', category: 'Technology', targetMinutes: 1000, subSkills: ['Premiere Pro', 'Storyboarding', 'Sound design', 'Color grading'] },
+    { name: 'Сторітелінг', category: 'Creative', targetMinutes: 2000, subSkills: ['Structure', 'Character development', 'Metaphors', 'Humor'] },
+    { name: 'Публічні виступи', category: 'Business', targetMinutes: 1000, subSkills: ['Storytelling', 'Body language', 'Slide design', 'Voice control'] },
+    { name: 'Маркетинг', category: 'Business', targetMinutes: 5000, subSkills: ['Copywriting', 'SEO', 'PPC', 'Brand building'] },
+    { name: 'Фотографія', category: 'Creative', targetMinutes: 1000, subSkills: ['Composition', 'Lighting', 'Editing', 'Camera settings'] },
+    { name: 'Тайм-менеджмент', category: 'Productivity', targetMinutes: 1000, subSkills: ['Planning', 'Prioritization', 'Deep Work', 'Systems'] },
+  ],
+  healthOptimizer: [
+    { name: 'Нутриціологія', category: 'Health', targetMinutes: 1000, subSkills: ['Macros', 'Micros', 'Supplements', 'Meal planning'] },
+    { name: 'Фізіологія тренувань', category: 'Health', targetMinutes: 1500, subSkills: ['Anatomy', 'Biomechanics', 'Recovery', 'Programming'] },
+    { name: 'Сон та відновлення', category: 'Health', targetMinutes: 500, subSkills: ['Circadian rhythms', 'Sleep hygiene', 'Chronotypes'] },
+    { name: 'Медитація та Mindfulness', category: 'Health', targetMinutes: 2000, subSkills: ['Focus', 'Stress reduction', 'Breathwork', 'Vipassana'] },
+    { name: 'Критичне мислення', category: 'Productivity', targetMinutes: 5000, subSkills: ['Logic', 'Cognitive biases', 'Mental models', 'Problem solving'] },
+    { name: 'Кулінарія', category: 'Creative', targetMinutes: 5000, subSkills: ['Knife skills', 'Flavor pairing', 'Techniques', 'Baking'] },
+  ],
+  languageLearner: [
+    { name: 'Англійська мова (C1-C2)', category: 'Languages', targetMinutes: 5000, subSkills: ['Speaking', 'Writing', 'Listening', 'Vocabulary'] },
+    { name: 'Іспанська мова', category: 'Languages', targetMinutes: 2000, subSkills: ['Basics', 'Conversation', 'Grammar'] },
+    { name: 'Швидкочитання', category: 'Productivity', targetMinutes: 200, subSkills: ['Scanning', 'Subvocalization control', 'Peripheral vision'] },
+    { name: 'Навчання як вчитися', category: 'Productivity', targetMinutes: 500, subSkills: ['Active recall', 'Spaced repetition', 'Feynman technique', 'Mind mapping'] },
+    { name: 'Критичне мислення', category: 'Productivity', targetMinutes: 5000, subSkills: ['Logic', 'Cognitive biases', 'Mental models', 'Problem solving'] },
+    { name: 'Емоційний інтелект', category: 'Productivity', targetMinutes: 3000, subSkills: ['Empathy', 'Self-regulation', 'Social skills', 'Motivation'] },
+  ],
+  biohacker: [
+    { name: 'Нутриціологія', category: 'Health', targetMinutes: 1000, subSkills: ['Macros', 'Micros', 'Supplements', 'Meal planning'] },
+    { name: 'Сон та відновлення', category: 'Health', targetMinutes: 500, subSkills: ['Circadian rhythms', 'Sleep hygiene', 'Chronotypes'] },
+    { name: 'Медитація та Mindfulness', category: 'Health', targetMinutes: 2000, subSkills: ['Focus', 'Stress reduction', 'Breathwork', 'Vipassana'] },
+    { name: 'Фізіологія тренувань', category: 'Health', targetMinutes: 1500, subSkills: ['Anatomy', 'Biomechanics', 'Recovery', 'Programming'] },
+    { name: 'AI & Prompt Engineering', category: 'Technology', targetMinutes: 1000, subSkills: ['ChatGPT', 'Midjourney', 'LLM integration', 'Automation'] },
+    { name: 'Критичне мислення', category: 'Productivity', targetMinutes: 5000, subSkills: ['Logic', 'Cognitive biases', 'Mental models', 'Problem solving'] },
+  ],
+  leader: [
+    { name: 'Лідерство та менеджмент', category: 'Business', targetMinutes: 10000, subSkills: ['Delegation', 'Hiring', 'Motivation', 'Strategy'] },
+    { name: 'Емоційний інтелект', category: 'Productivity', targetMinutes: 3000, subSkills: ['Empathy', 'Self-regulation', 'Social skills', 'Motivation'] },
+    { name: 'Публічні виступи', category: 'Business', targetMinutes: 1000, subSkills: ['Storytelling', 'Body language', 'Slide design', 'Voice control'] },
+    { name: 'Психологія поведінки', category: 'Science', targetMinutes: 3000, subSkills: ['Habit formation', 'Motivation', 'Influence', 'Group dynamics'] },
+    { name: 'Стратегічне мислення', category: 'Business', targetMinutes: 5000, subSkills: ['Game theory', 'Scenario planning', 'Risk assessment'] },
+    { name: 'Нетворкінг', category: 'Business', targetMinutes: 1000, subSkills: ['Active listening', 'Relationship building', 'Follow-up', 'Social capital'] },
+  ],
+  investor: [
+    { name: 'Фінансова грамотність', category: 'Business', targetMinutes: 2000, subSkills: ['Budgeting', 'Investing', 'Taxes', 'Financial modeling'] },
+    { name: 'Стратегічне мислення', category: 'Business', targetMinutes: 5000, subSkills: ['Game theory', 'Scenario planning', 'Risk assessment'] },
+    { name: 'Data Analysis', category: 'Technology', targetMinutes: 2000, subSkills: ['Excel', 'SQL', 'Python Pandas', 'Visualization'] },
+    { name: 'Психологія поведінки', category: 'Science', targetMinutes: 3000, subSkills: ['Habit formation', 'Motivation', 'Influence', 'Group dynamics'] },
+    { name: 'Тайм-менеджмент', category: 'Productivity', targetMinutes: 1000, subSkills: ['Planning', 'Prioritization', 'Deep Work', 'Systems'] },
+    { name: 'Критичне мислення', category: 'Productivity', targetMinutes: 5000, subSkills: ['Logic', 'Cognitive biases', 'Mental models', 'Problem solving'] },
+  ],
+};
+
 export const SEED_BOOKS: Book[] = [
   {
     id: BOOK_ATOMIC_HABITS_ID,

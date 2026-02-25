@@ -32,7 +32,7 @@ const SUGGESTED_VALUES = [
 ];
 
 export const Onboarding: React.FC = () => {
-  const { initUser, updateUser, loadSeedData } = useStore();
+  const { initUser, updateUser, loadSeedData, user } = useStore();
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [mission, setMission] = useState('');
@@ -55,8 +55,10 @@ export const Onboarding: React.FC = () => {
   };
 
   const handleComplete = () => {
-    // Batch all updates at the end
-    initUser(name.trim() || 'Користувач', 'guest');
+    // Only init user if not already seeded
+    if (!user) {
+      initUser(name.trim() || 'Користувач', 'guest');
+    }
     updateUser({ 
       missionStatement: mission,
       coreValues: selectedValues 
