@@ -21,6 +21,8 @@ export type GoalTimeframe =
 
 export type Priority = 'A' | 'B' | 'C' | 'D' | 'E';
 
+export type EnergyLevel = 'high' | 'medium' | 'low';
+
 export type HabitFrequency = 'daily' | 'weekdays' | 'weekends' | 'custom';
 
 export interface User {
@@ -37,6 +39,7 @@ export interface User {
   preferredMethodologies: string[];
   currentStreak: number;
   longestStreak: number;
+  lastLoginDate?: string;
   totalPoints: number;
   level: number;
   achievements: string[];
@@ -110,6 +113,7 @@ export interface Task {
   description: string;
   priority: Priority;
   context: string;
+  energyLevel?: EnergyLevel;
   estimatedTime: number;
   dueDate: string | null;
   completed: boolean;
@@ -264,8 +268,18 @@ export interface FinanceEntry {
   date: string;
 }
 
+export interface Investment {
+  id: string;
+  name: string;
+  category: 'stock' | 'crypto' | 'etf' | 'real_estate' | 'cash' | 'other';
+  amountInvested: number;
+  currentValue: number;
+  lastUpdated: string;
+}
+
 export interface FinanceState {
   entries: FinanceEntry[];
+  investments: Investment[];
   sevenRulesCompleted: Record<string, boolean>;
   fireData: {
     annualExpenses: number;
@@ -273,6 +287,144 @@ export interface FinanceState {
     annualSavings: number;
     expectedReturn: number;
   };
+}
+
+export interface AIChatMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  createdAt: string;
+  type?: 'text' | 'suggestion' | 'analysis';
+  metadata?: any;
+}
+
+export interface AICoachState {
+  messages: AIChatMessage[];
+  isTyping: boolean;
+}
+
+export interface SleepEntry {
+  id: string;
+  date: string;
+  bedtime: string;
+  wakeTime: string;
+  quality: number;
+  hoursSlept: number;
+}
+
+export interface ExerciseEntry {
+  id: string;
+  date: string;
+  type: string;
+  duration: number;
+  intensity: 'low' | 'medium' | 'high';
+}
+
+export interface EnergyLog {
+  id: string;
+  date: string;
+  physical: number;
+  emotional: number;
+  mental: number;
+  spiritual: number;
+}
+
+export interface FastingLog {
+  id: string;
+  startTime: string;
+  endTime: string;
+  durationSeconds: number;
+  targetDuration: number;
+}
+
+export interface HealthState {
+  sleep: SleepEntry[];
+  exercise: ExerciseEntry[];
+  energy: EnergyLog[];
+  fasting: {
+    isFasting: boolean;
+    startTime: string | null;
+    targetDuration: number;
+    history: FastingLog[];
+  };
+}
+
+export interface CookieJarEntry {
+  id: string;
+  victory: string;
+  date: string;
+}
+
+export interface DecisionEntry {
+  id: string;
+  decision: string;
+  reasoning: string;
+  expectedOutcome: string;
+  actualOutcome: string;
+  lesson: string;
+  date: string;
+}
+
+export interface Affirmation {
+  id: string;
+  text: string;
+  category: 'identity' | 'growth' | 'gratitude' | 'confidence';
+  usageCount: number;
+}
+
+export interface Visualization {
+  id: string;
+  title: string;
+  description: string;
+  durationMinutes: number;
+  imageUrl?: string;
+}
+
+export interface MindsetState {
+  cookieJar: CookieJarEntry[];
+  decisions: DecisionEntry[];
+  affirmations: Affirmation[];
+  visualizations: Visualization[];
+}
+
+export interface Skill {
+  id: string;
+  name: string;
+  category: string;
+  totalMinutes: number;
+  targetMinutes: number;
+  subSkills: string[];
+  notes: string;
+  createdAt: string;
+}
+
+export interface FeynmanNote {
+  id: string;
+  concept: string;
+  simpleExplanation: string;
+  gaps: string;
+  analogy: string;
+  createdAt: string;
+}
+
+export interface TwelveWeekYear {
+  id: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  goals: string[]; // IDs of goals
+  weeks: WeeklyPlan[];
+  status: 'active' | 'completed' | 'planned' | 'archived';
+}
+
+export interface WeeklyPlan {
+  id: string;
+  weekNumber: number; // 1-13 (13th week is for review/buffer)
+  startDate: string;
+  endDate: string;
+  tactics: string[]; // IDs of tasks or action steps
+  score: number;
+  notes: string;
 }
 
 export const LIFE_AREA_LABELS: Record<LifeArea, string> = {

@@ -1,41 +1,56 @@
-import { useEffect } from 'react';
+import { useEffect, Suspense, lazy } from 'react';
 import { useStore } from './store/useStore';
 import { Layout } from './components/Layout';
 import {
   Dashboard,
-  MorningRoutine,
-  Goals,
-  Habits,
-  Tasks,
-  Journal,
-  Pomodoro,
-  WeeklyReview,
-  Analytics,
-  Achievements,
-  Premium,
-  Settings,
   Onboarding,
-  Learning,
-  Finance,
-  Health,
-  Mindset,
-  Library,
 } from './pages';
+import { Loader2 } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+
+// Lazy loaded heavy pages
+const MorningRoutine = lazy(() => import('./pages').then(module => ({ default: module.MorningRoutine })));
+const Goals = lazy(() => import('./pages').then(module => ({ default: module.Goals })));
+const Habits = lazy(() => import('./pages').then(module => ({ default: module.Habits })));
+const Tasks = lazy(() => import('./pages').then(module => ({ default: module.Tasks })));
+const Journal = lazy(() => import('./pages').then(module => ({ default: module.Journal })));
+const Pomodoro = lazy(() => import('./pages').then(module => ({ default: module.Pomodoro })));
+const WeeklyReview = lazy(() => import('./pages').then(module => ({ default: module.WeeklyReview })));
+const Analytics = lazy(() => import('./pages').then(module => ({ default: module.Analytics })));
+const Achievements = lazy(() => import('./pages').then(module => ({ default: module.Achievements })));
+const Premium = lazy(() => import('./pages').then(module => ({ default: module.Premium })));
+const Settings = lazy(() => import('./pages').then(module => ({ default: module.Settings })));
+const Learning = lazy(() => import('./pages').then(module => ({ default: module.Learning })));
+const Finance = lazy(() => import('./pages').then(module => ({ default: module.Finance })));
+const Health = lazy(() => import('./pages').then(module => ({ default: module.Health })));
+const Mindset = lazy(() => import('./pages').then(module => ({ default: module.Mindset })));
+const Library = lazy(() => import('./pages').then(module => ({ default: module.Library })));
+const AICoach = lazy(() => import('./pages').then(module => ({ default: module.AICoach })));
+const TwelveWeekYearPage = lazy(() => import('./pages').then(module => ({ default: module.TwelveWeekYearPage })));
+
+const PageLoader = () => (
+  <div className="flex h-full w-full items-center justify-center p-12">
+    <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+  </div>
+);
 
 function App() {
-  const { user, currentView, theme, setTheme } = useStore();
+  const { user, currentView, theme, setTheme, checkStreak } = useStore();
 
-  // Restore persisted theme on mount
+  // Restore persisted theme on mount and check streak
   useEffect(() => {
     setTheme(theme);
-  }, []);
+    if (user) {
+      checkStreak();
+    }
+  }, [user?.id]); // Check streak when user loads/changes
 
   // Show onboarding if no user
   if (!user) {
     return <Onboarding />;
   }
 
-  const renderCurrentView = () => {
+  const getViewComponent = () => {
     switch (currentView) {
       case 'dashboard':
         return <Dashboard />;
@@ -71,6 +86,10 @@ function App() {
         return <Mindset />;
       case 'library':
         return <Library />;
+      case 'ai-coach':
+        return <AICoach />;
+      case '12-week-year':
+        return <TwelveWeekYearPage />;
       default:
         return <Dashboard />;
     }
@@ -78,7 +97,20 @@ function App() {
 
   return (
     <Layout>
-      {renderCurrentView()}
+      <Suspense fallback={<PageLoader />}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentView}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="h-full"
+          >
+            {getViewComponent()}
+          </motion.div>
+        </AnimatePresence>
+      </Suspense>
     </Layout>
   );
 }

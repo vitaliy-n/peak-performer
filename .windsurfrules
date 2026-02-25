@@ -1,0 +1,37 @@
+# Peak Performer Project Rules
+
+## 🛠 Tech Stack
+- **Frontend Framework**: React 19, TypeScript, Vite
+- **Styling**: Tailwind CSS v4 (Mobile-first, responsive)
+- **State Management**: Zustand (Persisted to storage)
+- **Icons**: Lucide React
+- **Tour/Onboarding**: driver.js
+- **Charts**: Recharts
+
+## 📐 Architectural Guidelines
+1. **State Management**: 
+   - Keep local state minimal. Use Zustand for global state.
+   - Always use **selectors** when extracting data from Zustand to prevent unnecessary re-renders (e.g., `const user = useStore(state => state.user)`).
+   - If the store becomes too large, break it down into slices (e.g., `createHabitSlice`, `createFinanceSlice`).
+
+2. **TypeScript & Typing**: 
+   - Maintain strict typing in `src/types/index.ts`. 
+   - Absolutely NO `any` types. Create proper interfaces for all entities.
+
+3. **Component Structure**: 
+   - Use functional components.
+   - Keep components modular. If a page file (like `Learning.tsx`) grows beyond 300-400 lines, extract sub-components into `src/components/`.
+   - Prefer absolute paths or clean relative paths for imports.
+
+4. **Performance**: 
+   - Use `React.memo`, `useMemo`, and `useCallback` for rendering heavy lists (e.g., Habits list, Books library, Tasks).
+   - Use `React.lazy` and `<Suspense>` for route-level code splitting to keep the initial bundle size small.
+
+5. **UI & Styling**: 
+   - Adhere strictly to Tailwind utility classes.
+   - Ensure support for both Light and Dark modes (`dark:` modifiers).
+   - Maintain consistent spacing, typography, and rounded corners (`rounded-xl` for cards).
+
+## 🚀 Terminal & Commands
+- **NEVER** use `cd` in the `run_command` tool. Always specify the `Cwd` argument instead.
+- Run `npm run build` to verify type safety and build success after major refactoring.

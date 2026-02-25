@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { 
   LayoutDashboard, 
   Target, 
@@ -14,15 +15,20 @@ import {
   Menu,
   X,
   Timer,
+  Calendar,
   ClipboardCheck,
   GraduationCap,
   DollarSign,
   Heart,
   Brain,
-  Library
+  Library,
+  Bot
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { LEVEL_NAMES, LEVEL_POINTS } from '../types';
+import { CommandPalette } from './CommandPalette';
+
+import { LevelBadge } from './LevelBadge';
 
 interface NavItemProps {
   icon: React.ReactNode;
@@ -57,8 +63,10 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const navItems = [
     { icon: <LayoutDashboard className="w-5 h-5" />, label: 'Дашборд', view: 'dashboard', tourClass: 'dashboard-tour' },
+    { icon: <Bot className="w-5 h-5" />, label: 'AI Coach', view: 'ai-coach', tourClass: 'ai-coach-tour' },
     { icon: <Sun className="w-5 h-5" />, label: 'Ранкова рутина', view: 'morning' },
     { icon: <Target className="w-5 h-5" />, label: 'Цілі', view: 'goals' },
+    { icon: <Calendar className="w-5 h-5" />, label: '12 Тижнів', view: '12-week-year' },
     { icon: <Repeat className="w-5 h-5" />, label: 'Звички', view: 'habits', tourClass: 'habits-tour' },
     { icon: <CheckSquare className="w-5 h-5" />, label: 'Завдання', view: 'tasks' },
     { icon: <BookOpen className="w-5 h-5" />, label: 'Журнал', view: 'journal' },
@@ -111,12 +119,17 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
       {user && (
         <div className="p-4 border-b border-gray-100 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center text-white font-bold">
-              {user.name.charAt(0).toUpperCase()}
-            </div>
+            <LevelBadge level={currentLevel} size="md" />
             <div>
               <p className="font-medium text-gray-900 dark:text-gray-100">{user.name}</p>
-              <p className="text-sm text-gray-500">{LEVEL_NAMES[currentLevel]}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-gray-500">{LEVEL_NAMES[currentLevel]}</p>
+                {user.currentStreak > 0 && (
+                  <span className="flex items-center text-xs font-bold text-orange-500 bg-orange-100 dark:bg-orange-900/30 px-1.5 py-0.5 rounded-full">
+                    🔥 {user.currentStreak}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <div className="space-y-1">
@@ -125,9 +138,11 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
               <span>{currentPoints.toLocaleString()} XP</span>
             </div>
             <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500"
-                style={{ width: `${Math.min(100, progressToNextLevel)}%` }}
+              <motion.div 
+                className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.min(100, progressToNextLevel)}%` }}
+                transition={{ duration: 1, ease: "easeOut" }}
               />
             </div>
             <button
@@ -224,6 +239,8 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           {children}
         </div>
       </main>
+      
+      <CommandPalette />
     </div>
   );
 };

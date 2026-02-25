@@ -12,12 +12,15 @@ import {
   FolderKanban,
   AlertCircle,
   LayoutGrid,
-  List
+  List,
+  Zap,
+  Battery,
+  Coffee
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useStore } from '../store/useStore';
 import { Card, CardContent, CardHeader, CardTitle, Button, Modal, Input, Textarea } from '../components/ui';
-import type { Task, Priority } from '../types';
+import type { Task, Priority, EnergyLevel } from '../types';
 import { PRIORITY_LABELS } from '../types';
 
 const CONTEXTS = ['@робота', '@дім', '@дзвінки', '@комп\'ютер', '@навчання', '@покупки'];
@@ -37,6 +40,7 @@ export const Tasks: React.FC = () => {
     description: '',
     priority: 'A' as Priority,
     context: '',
+    energyLevel: 'medium' as EnergyLevel,
     estimatedTime: 30,
     dueDate: '',
   });
@@ -55,6 +59,7 @@ export const Tasks: React.FC = () => {
         description: formData.description,
         priority: formData.priority,
         context: formData.context,
+        energyLevel: formData.energyLevel,
         estimatedTime: formData.estimatedTime,
         dueDate: formData.dueDate || null,
         isFrog: false,
@@ -73,6 +78,7 @@ export const Tasks: React.FC = () => {
       description: '',
       priority: 'A',
       context: '',
+      energyLevel: 'medium',
       estimatedTime: 30,
       dueDate: '',
     });
@@ -85,6 +91,7 @@ export const Tasks: React.FC = () => {
       description: task.description,
       priority: task.priority,
       context: task.context,
+      energyLevel: task.energyLevel || 'medium',
       estimatedTime: task.estimatedTime,
       dueDate: task.dueDate || '',
     });
@@ -547,6 +554,20 @@ export const Tasks: React.FC = () => {
                 ))}
               </select>
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Рівень енергії
+              </label>
+              <select
+                value={formData.energyLevel}
+                onChange={e => setFormData({ ...formData, energyLevel: e.target.value as EnergyLevel })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+              >
+                <option value="high">⚡ Високий (High)</option>
+                <option value="medium">🔋 Середній (Medium)</option>
+                <option value="low">☕ Низький (Low)</option>
+              </select>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -612,6 +633,18 @@ const TaskItem: React.FC<TaskItemProps> = ({
         )}
         {task.context && (
           <span className="px-1.5 py-0.5 bg-gray-100 rounded">{task.context}</span>
+        )}
+        {task.energyLevel && (
+          <span className={`px-1.5 py-0.5 rounded flex items-center gap-1 ${
+            task.energyLevel === 'high' ? 'bg-yellow-100 text-yellow-700' :
+            task.energyLevel === 'medium' ? 'bg-blue-100 text-blue-700' :
+            'bg-gray-100 text-gray-700'
+          }`}>
+            {task.energyLevel === 'high' && <Zap className="w-3 h-3" />}
+            {task.energyLevel === 'medium' && <Battery className="w-3 h-3" />}
+            {task.energyLevel === 'low' && <Coffee className="w-3 h-3" />}
+            {task.energyLevel === 'high' ? 'High' : task.energyLevel === 'medium' ? 'Med' : 'Low'}
+          </span>
         )}
         <span className={`px-1.5 py-0.5 rounded ${
           task.priority === 'A' ? 'bg-red-100 text-red-600' :

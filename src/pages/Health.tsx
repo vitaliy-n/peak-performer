@@ -13,30 +13,7 @@ import {
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { Card, CardContent, CardHeader, CardTitle, Button, Input } from '../components/ui';
-
-interface SleepEntry {
-  id: string;
-  date: string;
-  bedtime: string;
-  wakeTime: string;
-  quality: number;
-  hoursSlept: number;
-}
-
-interface ExerciseEntry {
-  id: string;
-  date: string;
-  type: string;
-  duration: number;
-  intensity: 'low' | 'medium' | 'high';
-}
-
-interface EnergyLog {
-  physical: number;
-  emotional: number;
-  mental: number;
-  spiritual: number;
-}
+import type { ExerciseEntry, SleepEntry } from '../types';
 
 const BREATHING_EXERCISES = [
   { name: 'Box Breathing (Navy SEALs)', pattern: '4-4-4-4', description: 'Вдих 4с → Затримка 4с → Видих 4с → Затримка 4с', phases: [4, 4, 4, 4] },
@@ -54,16 +31,23 @@ const SLEEP_HYGIENE_TIPS = [
 ];
 
 export const Health: React.FC = () => {
-  const { addPoints } = useStore();
+  const { 
+    health, 
+    addSleepEntry, 
+    addExerciseEntry, 
+    logEnergy, 
+    startFasting, 
+    endFasting, 
+    addPoints
+  } = useStore();
+  
   const [activeTab, setActiveTab] = useState<'sleep' | 'exercise' | 'breathing' | 'energy' | 'fasting'>('sleep');
 
-  // Sleep state
-  const [sleepEntries, setSleepEntries] = useState<SleepEntry[]>([]);
+  // Sleep state forms
   const [sleepForm, setSleepForm] = useState({ bedtime: '23:00', wakeTime: '07:00', quality: 7 });
   const [hygieneChecks, setHygieneChecks] = useState<boolean[]>(SLEEP_HYGIENE_TIPS.map(() => false));
 
-  // Exercise state
-  const [exerciseEntries, setExerciseEntries] = useState<ExerciseEntry[]>([]);
+  // Exercise state forms
   const [exerciseForm, setExerciseForm] = useState({ type: 'Кардіо', duration: 30, intensity: 'medium' as ExerciseEntry['intensity'] });
 
   // Breathing state
@@ -73,14 +57,13 @@ export const Health: React.FC = () => {
   const [breathRunning, setBreathRunning] = useState(false);
   const [breathCycles, setBreathCycles] = useState(0);
 
-  // Energy state
-  const [energy, setEnergy] = useState<EnergyLog>({ physical: 7, emotional: 7, mental: 7, spiritual: 7 });
+  // Energy state forms
+  const [energyForm, setEnergyForm] = useState({ physical: 7, emotional: 7, mental: 7, spiritual: 7 });
 
   // Fasting state
-  const [fastingStart, setFastingStart] = useState<string | null>(null);
   const [fastingElapsed, setFastingElapsed] = useState(0);
-  const [fastingWindow, setFastingWindow] = useState(16);
-
+  const [selectedFastingWindow, setSelectedFastingWindow] = useState(16);
+  
   // Breathing timer
   useEffect(() => {
     if (!breathRunning) return;
@@ -125,13 +108,22 @@ export const Health: React.FC = () => {
 
   // Fasting timer
   useEffect(() => {
-    if (!fastingStart) return;
+    if (!health.fasting.isFasting || !health.fasting.startTime) {
+      setFastingElapsed(0);
+      return;
+    }
+    
+    // Initial calculation
+    setFastingElapsed(Math.floor((Date.now() - new Date(health.fasting.startTime).getTime()) / 1000));
+
     const interval = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - new Date(fastingStart).getTime()) / 1000);
-      setFastingElapsed(elapsed);
+      if (health.fasting.startTime) {
+        const elapsed = Math.floor((Date.now() - new Date(health.fasting.startTime).getTime()) / 1000);
+        setFastingElapsed(elapsed);
+      }
     }, 1000);
     return () => clearInterval(interval);
-  }, [fastingStart]);
+  }, [health.fasting.isFasting, health.fasting.startTime]);
 
   const handleAddSleep = () => {
     const [bh, bm] = sleepForm.bedtime.split(':').map(Number);
@@ -139,28 +131,26 @@ export const Health: React.FC = () => {
     let hours = wh - bh + (wm - bm) / 60;
     if (hours < 0) hours += 24;
 
-    const entry: SleepEntry = {
-      id: Date.now().toString(),
+    addSleepEntry({
       date: new Date().toISOString().split('T')[0],
       bedtime: sleepForm.bedtime,
       wakeTime: sleepForm.wakeTime,
       quality: sleepForm.quality,
       hoursSlept: Math.round(hours * 10) / 10,
-    };
-    setSleepEntries(prev => [...prev, entry]);
-    addPoints(10);
+    });
   };
 
   const handleAddExercise = () => {
-    const entry: ExerciseEntry = {
-      id: Date.now().toString(),
+    addExerciseEntry({
       date: new Date().toISOString().split('T')[0],
       type: exerciseForm.type,
       duration: exerciseForm.duration,
       intensity: exerciseForm.intensity,
-    };
-    setExerciseEntries(prev => [...prev, entry]);
-    addPoints(15);
+    });
+  };
+
+  const handleLogEnergy = () => {
+    logEnergy(energyForm);
   };
 
   const startBreathing = () => {
@@ -168,7 +158,6 @@ export const Health: React.FC = () => {
       setBreathRunning(false);
       setBreathPhase('idle');
       setBreathTimer(0);
-      if (breathCycles > 0) addPoints(breathCycles * 2);
       setBreathCycles(0);
     } else {
       setBreathRunning(true);
@@ -176,13 +165,11 @@ export const Health: React.FC = () => {
     }
   };
 
-  const toggleFasting = () => {
-    if (fastingStart) {
-      setFastingStart(null);
-      setFastingElapsed(0);
-      addPoints(20);
+  const handleToggleFasting = () => {
+    if (health.fasting.isFasting) {
+      endFasting(new Date().toISOString());
     } else {
-      setFastingStart(new Date().toISOString());
+      startFasting(new Date().toISOString(), selectedFastingWindow);
     }
   };
 
@@ -255,9 +242,9 @@ export const Health: React.FC = () => {
               </div>
               <Button onClick={handleAddSleep} className="w-full"><Plus className="w-4 h-4 mr-2" /> Записати сон</Button>
 
-              {sleepEntries.length > 0 && (
+              {health.sleep.length > 0 && (
                 <div className="space-y-2 mt-4">
-                  {sleepEntries.slice(-5).reverse().map(entry => (
+                  {health.sleep.slice(-5).reverse().map((entry: SleepEntry) => (
                     <div key={entry.id} className="flex items-center justify-between p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
                       <div>
                         <p className="font-medium text-gray-900 dark:text-gray-100">{entry.hoursSlept} годин</p>
@@ -357,14 +344,14 @@ export const Health: React.FC = () => {
           <Card>
             <CardHeader><CardTitle>Історія тренувань</CardTitle></CardHeader>
             <CardContent>
-              {exerciseEntries.length === 0 ? (
+              {health.exercise.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <Dumbbell className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                   <p>Ще немає записів</p>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {exerciseEntries.slice().reverse().map(entry => (
+                  {health.exercise.slice().reverse().map((entry: ExerciseEntry) => (
                     <div key={entry.id} className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                       <Dumbbell className="w-5 h-5 text-green-600" />
                       <div className="flex-1">
@@ -385,7 +372,7 @@ export const Health: React.FC = () => {
               )}
               <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Всього: <strong>{exerciseEntries.reduce((s, e) => s + e.duration, 0)} хв</strong> за {exerciseEntries.length} тренувань
+                  Всього: <strong>{health.exercise.reduce((s: number, e: ExerciseEntry) => s + e.duration, 0)} хв</strong> за {health.exercise.length} тренувань
                 </p>
               </div>
             </CardContent>
@@ -456,12 +443,12 @@ export const Health: React.FC = () => {
                 <div key={item.key}>
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-medium text-gray-700 dark:text-gray-300">{item.emoji} {item.label}</span>
-                    <span className={`font-bold ${item.color}`}>{energy[item.key]}/10</span>
+                    <span className={`font-bold ${item.color}`}>{energyForm[item.key as keyof typeof energyForm]}/10</span>
                   </div>
                   <input
                     type="range" min="1" max="10"
-                    value={energy[item.key]}
-                    onChange={e => setEnergy({ ...energy, [item.key]: Number(e.target.value) })}
+                    value={energyForm[item.key as keyof typeof energyForm]}
+                    onChange={e => setEnergyForm({ ...energyForm, [item.key]: Number(e.target.value) })}
                     className="w-full"
                   />
                 </div>
@@ -470,12 +457,12 @@ export const Health: React.FC = () => {
               <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl text-center">
                 <p className="text-sm text-gray-500 mb-1">Загальна енергія</p>
                 <p className="text-4xl font-bold text-gray-900 dark:text-gray-100">
-                  {Math.round((energy.physical + energy.emotional + energy.mental + energy.spiritual) / 4 * 10) / 10}
+                  {Math.round((energyForm.physical + energyForm.emotional + energyForm.mental + energyForm.spiritual) / 4 * 10) / 10}
                 </p>
                 <p className="text-sm text-gray-500">з 10</p>
               </div>
 
-              <Button onClick={() => addPoints(10)} className="w-full">Зберегти оцінку енергії</Button>
+              <Button onClick={handleLogEnergy} className="w-full">Зберегти оцінку енергії</Button>
             </CardContent>
           </Card>
         </div>
@@ -491,10 +478,13 @@ export const Health: React.FC = () => {
                 {[16, 18, 20].map(hours => (
                   <button
                     key={hours}
-                    onClick={() => setFastingWindow(hours)}
+                    onClick={() => setSelectedFastingWindow(hours)}
                     className={`px-6 py-3 rounded-xl border-2 font-bold transition-all ${
-                      fastingWindow === hours ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700' : 'border-gray-200 dark:border-gray-700 text-gray-500'
+                      (health.fasting.isFasting ? health.fasting.targetDuration : selectedFastingWindow) === hours 
+                        ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700' 
+                        : 'border-gray-200 dark:border-gray-700 text-gray-500'
                     }`}
+                    disabled={health.fasting.isFasting}
                   >
                     {hours}:{24 - hours}
                   </button>
@@ -505,10 +495,10 @@ export const Health: React.FC = () => {
                 <div className="relative w-48 h-48">
                   <svg className="w-full h-full transform -rotate-90">
                     <circle cx="96" cy="96" r="88" stroke="#E5E7EB" strokeWidth="12" fill="none" />
-                    <circle cx="96" cy="96" r="88" stroke={fastingStart ? '#10B981' : '#D1D5DB'} strokeWidth="12" fill="none"
+                    <circle cx="96" cy="96" r="88" stroke={health.fasting.isFasting ? '#10B981' : '#D1D5DB'} strokeWidth="12" fill="none"
                       strokeLinecap="round"
                       strokeDasharray={`${2 * Math.PI * 88}`}
-                      strokeDashoffset={`${2 * Math.PI * 88 * (1 - Math.min(1, fastingElapsed / (fastingWindow * 3600)))}`}
+                      strokeDashoffset={`${2 * Math.PI * 88 * (1 - Math.min(1, fastingElapsed / ((health.fasting.targetDuration || selectedFastingWindow) * 3600)))}`}
                       className="transition-all duration-1000"
                     />
                   </svg>
@@ -517,16 +507,16 @@ export const Health: React.FC = () => {
                       {formatFastingTime(fastingElapsed)}
                     </span>
                     <span className="text-sm text-gray-500">
-                      / {fastingWindow}:00:00
+                      / {health.fasting.isFasting ? health.fasting.targetDuration : selectedFastingWindow}:00:00
                     </span>
                   </div>
                 </div>
 
-                <Button onClick={toggleFasting} className="mt-6" variant={fastingStart ? 'destructive' : 'primary'}>
-                  {fastingStart ? 'Завершити голодування' : 'Почати голодування'}
+                <Button onClick={handleToggleFasting} className="mt-6" variant={health.fasting.isFasting ? 'destructive' : 'primary'}>
+                  {health.fasting.isFasting ? 'Завершити голодування' : 'Почати голодування'}
                 </Button>
 
-                {fastingStart && fastingElapsed >= fastingWindow * 3600 && (
+                {health.fasting.isFasting && fastingElapsed >= health.fasting.targetDuration * 3600 && (
                   <div className="mt-4 p-3 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg text-center font-medium">
                     Вікно голодування завершено! Можете їсти.
                   </div>

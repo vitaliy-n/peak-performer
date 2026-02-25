@@ -1,15 +1,24 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
 interface CardProps {
   className?: string;
   children: React.ReactNode;
+  onClick?: () => void;
 }
 
-export const Card: React.FC<CardProps> = ({ className = '', children }) => {
+export const Card: React.FC<CardProps> = ({ className = '', children, onClick }) => {
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 ${className}`}>
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      whileHover={onClick ? { y: -2, transition: { duration: 0.2 } } : undefined}
+      className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 ${className} ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick}
+    >
       {children}
-    </div>
+    </motion.div>
   );
 };
 

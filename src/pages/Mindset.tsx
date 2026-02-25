@@ -8,9 +8,13 @@ import {
   Trash2,
   Trophy,
   Zap,
+  Eye,
+  Quote,
+  Play
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { Card, CardContent, CardHeader, CardTitle, Button, Modal, Input, Textarea } from '../components/ui';
+import type { DecisionEntry, Affirmation, Visualization } from '../types';
 
 const MENTAL_MODELS = [
   { name: 'First Principles Thinking', description: 'Розбий проблему до базових істин і будуй вгору', emoji: '🔬', author: 'Elon Musk' },
@@ -49,37 +53,40 @@ const POWER_QUESTIONS = [
   'Яку одну звичку я можу змінити, щоб трансформувати своє життя?',
 ];
 
-interface CookieJarEntry {
-  id: string;
-  victory: string;
-  date: string;
-}
-
-interface DecisionEntry {
-  id: string;
-  decision: string;
-  reasoning: string;
-  expectedOutcome: string;
-  actualOutcome: string;
-  lesson: string;
-  date: string;
-}
-
 export const Mindset: React.FC = () => {
-  const { addPoints } = useStore();
-  const [activeTab, setActiveTab] = useState<'models' | 'stoic' | 'questions' | 'cookiejar' | 'decisions'>('models');
+  const { 
+    mindset, 
+    addCookieJarEntry, 
+    deleteCookieJarEntry, 
+    addDecisionEntry, 
+    deleteDecisionEntry,
+    addAffirmation,
+    deleteAffirmation,
+    incrementAffirmationUsage,
+    addVisualization,
+    deleteVisualization,
+    addPoints 
+  } = useStore();
+  
+  const [activeTab, setActiveTab] = useState<'models' | 'stoic' | 'questions' | 'cookiejar' | 'decisions' | 'affirmations' | 'visualizations'>('models');
 
-  // Cookie Jar state (David Goggins)
-  const [cookieJar, setCookieJar] = useState<CookieJarEntry[]>([]);
+  // Cookie Jar state
   const [showCookieModal, setShowCookieModal] = useState(false);
   const [cookieForm, setCookieForm] = useState('');
 
   // Decision Journal state
-  const [decisions, setDecisions] = useState<DecisionEntry[]>([]);
   const [showDecisionModal, setShowDecisionModal] = useState(false);
-  const [decisionForm, setDecisionForm] = useState({
+  const [decisionForm, setDecisionForm] = useState<Omit<DecisionEntry, 'id' | 'date'>>({
     decision: '', reasoning: '', expectedOutcome: '', actualOutcome: '', lesson: '',
   });
+
+  // Affirmation state
+  const [showAffirmationModal, setShowAffirmationModal] = useState(false);
+  const [affirmationForm, setAffirmationForm] = useState({ text: '', category: 'confidence' as Affirmation['category'] });
+
+  // Visualization state
+  const [showVisualizationModal, setShowVisualizationModal] = useState(false);
+  const [visualizationForm, setVisualizationForm] = useState<Omit<Visualization, 'id'>>({ title: '', description: '', durationMinutes: 5 });
 
   // Selected daily question
   const [selectedQuestion, setSelectedQuestion] = useState<number | null>(null);
@@ -87,26 +94,32 @@ export const Mindset: React.FC = () => {
   const handleAddCookie = (e: React.FormEvent) => {
     e.preventDefault();
     if (!cookieForm.trim()) return;
-    setCookieJar(prev => [...prev, {
-      id: Date.now().toString(),
-      victory: cookieForm,
-      date: new Date().toISOString(),
-    }]);
+    addCookieJarEntry(cookieForm);
     setCookieForm('');
     setShowCookieModal(false);
-    addPoints(15);
   };
 
   const handleAddDecision = (e: React.FormEvent) => {
     e.preventDefault();
-    setDecisions(prev => [...prev, {
-      id: Date.now().toString(),
-      ...decisionForm,
-      date: new Date().toISOString(),
-    }]);
+    addDecisionEntry(decisionForm);
     setDecisionForm({ decision: '', reasoning: '', expectedOutcome: '', actualOutcome: '', lesson: '' });
     setShowDecisionModal(false);
-    addPoints(20);
+  };
+
+  const handleAddAffirmation = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!affirmationForm.text.trim()) return;
+    addAffirmation(affirmationForm.text, affirmationForm.category);
+    setAffirmationForm({ text: '', category: 'confidence' });
+    setShowAffirmationModal(false);
+  };
+
+  const handleAddVisualization = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!visualizationForm.title.trim()) return;
+    addVisualization(visualizationForm);
+    setVisualizationForm({ title: '', description: '', durationMinutes: 5 });
+    setShowVisualizationModal(false);
   };
 
   const tabs = [
@@ -115,6 +128,8 @@ export const Mindset: React.FC = () => {
     { key: 'questions', label: 'Power Questions', icon: Zap },
     { key: 'cookiejar', label: 'Cookie Jar', icon: Trophy },
     { key: 'decisions', label: 'Decision Journal', icon: Lightbulb },
+    { key: 'affirmations', label: 'Афірмації', icon: Quote },
+    { key: 'visualizations', label: 'Візуалізація', icon: Eye },
   ];
 
   return (
@@ -306,7 +321,7 @@ export const Mindset: React.FC = () => {
             </Button>
           </div>
 
-          {cookieJar.length === 0 ? (
+          {mindset.cookieJar.length === 0 ? (
             <Card>
               <CardContent className="py-16 text-center">
                 <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -325,7 +340,7 @@ export const Mindset: React.FC = () => {
             </Card>
           ) : (
             <div className="space-y-3">
-              {cookieJar.slice().reverse().map(entry => (
+              {mindset.cookieJar.slice().reverse().map(entry => (
                 <Card key={entry.id} className="bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/10 dark:to-yellow-900/10 border-amber-200 dark:border-amber-800">
                   <CardContent className="py-4">
                     <div className="flex items-start gap-3">
@@ -336,7 +351,7 @@ export const Mindset: React.FC = () => {
                           {new Date(entry.date).toLocaleDateString('uk-UA')}
                         </p>
                       </div>
-                      <button onClick={() => setCookieJar(prev => prev.filter(c => c.id !== entry.id))} className="p-1 hover:bg-red-50 rounded text-red-400">
+                      <button onClick={() => deleteCookieJarEntry(entry.id)} className="p-1 hover:bg-red-50 rounded text-red-400">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -345,12 +360,6 @@ export const Mindset: React.FC = () => {
               ))}
             </div>
           )}
-
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-500">
-              {cookieJar.length} перемог у вашій Cookie Jar
-            </p>
-          </div>
         </div>
       )}
 
@@ -372,7 +381,7 @@ export const Mindset: React.FC = () => {
             </Button>
           </div>
 
-          {decisions.length === 0 ? (
+          {mindset.decisions.length === 0 ? (
             <Card>
               <CardContent className="py-16 text-center">
                 <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -391,12 +400,12 @@ export const Mindset: React.FC = () => {
             </Card>
           ) : (
             <div className="space-y-4">
-              {decisions.slice().reverse().map(entry => (
+              {mindset.decisions.slice().reverse().map(entry => (
                 <Card key={entry.id}>
                   <CardContent className="py-4">
                     <div className="flex items-start justify-between mb-3">
                       <h3 className="font-semibold text-gray-900 dark:text-gray-100">{entry.decision}</h3>
-                      <button onClick={() => setDecisions(prev => prev.filter(d => d.id !== entry.id))} className="p-1 hover:bg-red-50 rounded text-red-400">
+                      <button onClick={() => deleteDecisionEntry(entry.id)} className="p-1 hover:bg-red-50 rounded text-red-400">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -420,6 +429,94 @@ export const Mindset: React.FC = () => {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Affirmations Tab */}
+      {activeTab === 'affirmations' && (
+        <div className="max-w-3xl mx-auto">
+          <Card className="mb-6 bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 border-pink-200 dark:border-pink-800">
+            <CardContent className="py-4">
+              <h3 className="font-semibold text-pink-800 dark:text-pink-300">Афірмації</h3>
+              <p className="text-sm text-pink-700 dark:text-pink-400 mt-1">
+                Повторюйте ці твердження щодня, щоб перепрограмувати своє мислення.
+              </p>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end mb-4">
+            <Button onClick={() => setShowAffirmationModal(true)}>
+              <Plus className="w-4 h-4 mr-2" /> Додати афірмацію
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4">
+            {mindset.affirmations.map(affirmation => (
+              <Card key={affirmation.id} className="hover:shadow-md transition-all">
+                <CardContent className="py-6 flex items-center justify-between">
+                  <div>
+                    <p className="text-lg font-medium text-gray-900 dark:text-gray-100">"{affirmation.text}"</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-full text-gray-500">
+                        {affirmation.category}
+                      </span>
+                      <span className="text-xs text-gray-400">Повторено: {affirmation.usageCount}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button size="sm" variant="outline" onClick={() => incrementAffirmationUsage(affirmation.id)}>
+                      <Quote className="w-4 h-4 mr-2" /> Повторити
+                    </Button>
+                    <button onClick={() => deleteAffirmation(affirmation.id)} className="p-2 hover:bg-red-50 rounded text-red-400">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Visualizations Tab */}
+      {activeTab === 'visualizations' && (
+        <div className="max-w-3xl mx-auto">
+          <Card className="mb-6 bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-teal-900/20 dark:to-cyan-900/20 border-teal-200 dark:border-teal-800">
+            <CardContent className="py-4">
+              <h3 className="font-semibold text-teal-800 dark:text-teal-300">Візуалізація</h3>
+              <p className="text-sm text-teal-700 dark:text-teal-400 mt-1">
+                Створюйте яскраві ментальні образи вашого успіху та майбутнього.
+              </p>
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end mb-4">
+            <Button onClick={() => setShowVisualizationModal(true)}>
+              <Plus className="w-4 h-4 mr-2" /> Додати візуалізацію
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {mindset.visualizations.map(viz => (
+              <Card key={viz.id} className="hover:shadow-md transition-all">
+                <CardContent className="py-6">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">{viz.title}</h3>
+                    <button onClick={() => deleteVisualization(viz.id)} className="text-gray-400 hover:text-red-500">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 h-12 overflow-hidden">{viz.description}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-gray-500">{viz.durationMinutes} хв</span>
+                    <Button size="sm" onClick={() => addPoints(10)}>
+                      <Play className="w-4 h-4 mr-2" /> Почати
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
 
@@ -452,6 +549,65 @@ export const Mindset: React.FC = () => {
           <div className="flex justify-end gap-3">
             <Button type="button" variant="ghost" onClick={() => setShowDecisionModal(false)}>Скасувати</Button>
             <Button type="submit">Зберегти</Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Affirmation Modal */}
+      <Modal isOpen={showAffirmationModal} onClose={() => setShowAffirmationModal(false)} title="Нова афірмація">
+        <form onSubmit={handleAddAffirmation} className="space-y-4">
+          <Textarea 
+            label="Текст афірмації" 
+            value={affirmationForm.text} 
+            onChange={e => setAffirmationForm({ ...affirmationForm, text: e.target.value })} 
+            placeholder="Я..." 
+            required 
+          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Категорія</label>
+            <select
+              value={affirmationForm.category}
+              onChange={e => setAffirmationForm({ ...affirmationForm, category: e.target.value as Affirmation['category'] })}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            >
+              <option value="confidence">Впевненість</option>
+              <option value="growth">Розвиток</option>
+              <option value="gratitude">Вдячність</option>
+              <option value="identity">Ідентичність</option>
+            </select>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button type="button" variant="ghost" onClick={() => setShowAffirmationModal(false)}>Скасувати</Button>
+            <Button type="submit">Додати</Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Visualization Modal */}
+      <Modal isOpen={showVisualizationModal} onClose={() => setShowVisualizationModal(false)} title="Нова візуалізація">
+        <form onSubmit={handleAddVisualization} className="space-y-4">
+          <Input 
+            label="Назва" 
+            value={visualizationForm.title} 
+            onChange={e => setVisualizationForm({ ...visualizationForm, title: e.target.value })} 
+            required 
+          />
+          <Textarea 
+            label="Опис сцени" 
+            value={visualizationForm.description} 
+            onChange={e => setVisualizationForm({ ...visualizationForm, description: e.target.value })} 
+            placeholder="Що ви бачите, чуєте, відчуваєте?" 
+            rows={4} 
+          />
+          <Input 
+            label="Тривалість (хв)" 
+            type="number" 
+            value={visualizationForm.durationMinutes} 
+            onChange={e => setVisualizationForm({ ...visualizationForm, durationMinutes: Number(e.target.value) })} 
+          />
+          <div className="flex justify-end gap-3">
+            <Button type="button" variant="ghost" onClick={() => setShowVisualizationModal(false)}>Скасувати</Button>
+            <Button type="submit">Додати</Button>
           </div>
         </form>
       </Modal>

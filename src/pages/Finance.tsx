@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {
+import { 
   DollarSign,
   TrendingUp,
   PiggyBank,
@@ -8,23 +8,26 @@ import {
   Calculator,
   Target,
   Wallet,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { Card, CardContent, CardHeader, CardTitle, Button, Modal, Input } from '../components/ui';
-
-interface FinanceEntry {
-  id: string;
-  type: 'income' | 'expense' | 'saving' | 'investment';
-  category: string;
-  amount: number;
-  description: string;
-  date: string;
-}
+import type { FinanceEntry, Investment } from '../types';
 
 const EXPENSE_CATEGORIES = [
   'Житло', 'Їжа', 'Транспорт', 'Здоров\'я', 'Розваги',
   'Одяг', 'Освіта', 'Підписки', 'Інше',
 ];
+
+const INVESTMENT_CATEGORIES: Record<string, string> = {
+  stock: 'Акції',
+  crypto: 'Криптовалюта',
+  etf: 'ETF / Фонди',
+  real_estate: 'Нерухомість',
+  cash: 'Готівка / Депозит',
+  other: 'Інше'
+};
 
 const SEVEN_RULES = [
   { rule: 'Відкладай 10% від усього заробітку', emoji: '💰', key: 'save10' },
@@ -37,15 +40,23 @@ const SEVEN_RULES = [
 ];
 
 export const Finance: React.FC = () => {
-  const { finance, addFinanceEntry, deleteFinanceEntry, toggleSevenRule, updateFireData } = useStore();
-  const [activeTab, setActiveTab] = useState<'tracker' | 'rules' | 'fire'>('tracker');
+  const { finance, addFinanceEntry, deleteFinanceEntry, toggleSevenRule, updateFireData, addInvestment, deleteInvestment } = useStore();
+  const [activeTab, setActiveTab] = useState<'tracker' | 'investments' | 'rules' | 'fire'>('tracker');
   const [showModal, setShowModal] = useState(false);
+  const [showInvestmentModal, setShowInvestmentModal] = useState(false);
 
   const [form, setForm] = useState({
     type: 'expense' as FinanceEntry['type'],
     category: '',
     amount: 0,
     description: '',
+  });
+
+  const [investmentForm, setInvestmentForm] = useState({
+    name: '',
+    category: 'stock' as Investment['category'],
+    amountInvested: 0,
+    currentValue: 0,
   });
 
   const handleAddEntry = (e: React.FormEvent) => {
@@ -58,6 +69,18 @@ export const Finance: React.FC = () => {
     });
     setShowModal(false);
     setForm({ type: 'expense', category: '', amount: 0, description: '' });
+  };
+
+  const handleAddInvestment = (e: React.FormEvent) => {
+    e.preventDefault();
+    addInvestment({
+      name: investmentForm.name,
+      category: investmentForm.category,
+      amountInvested: investmentForm.amountInvested,
+      currentValue: investmentForm.currentValue,
+    });
+    setShowInvestmentModal(false);
+    setInvestmentForm({ name: '', category: 'stock', amountInvested: 0, currentValue: 0 });
   };
 
   const totalIncome = finance.entries.filter(e => e.type === 'income').reduce((s, e) => s + e.amount, 0);
@@ -80,6 +103,7 @@ export const Finance: React.FC = () => {
 
   const tabs = [
     { key: 'tracker', label: 'Трекер', icon: Wallet },
+    { key: 'investments', label: 'Інвестиції', icon: TrendingUp },
     { key: 'rules', label: '7 Правил', icon: PiggyBank },
     { key: 'fire', label: 'FIRE', icon: Target },
   ];
@@ -239,6 +263,86 @@ export const Finance: React.FC = () => {
         </div>
       )}
 
+      {/* Investments Tab */}
+      {activeTab === 'investments' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="md:col-span-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
+              <CardContent className="py-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-blue-100 mb-1">Загальна вартість портфеля</p>
+                    <h2 className="text-4xl font-bold">
+                      ${finance.investments.reduce((sum, inv) => sum + inv.currentValue, 0).toLocaleString()}
+                    </h2>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-blue-100 mb-1">Вкладено</p>
+                    <p className="text-xl font-semibold">
+                      ${finance.investments.reduce((sum, inv) => sum + inv.amountInvested, 0).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold">Активи</h2>
+            <Button onClick={() => setShowInvestmentModal(true)}>
+              <Plus className="w-4 h-4 mr-2" /> Додати актив
+            </Button>
+          </div>
+
+          {finance.investments.length === 0 ? (
+            <div className="text-center py-12 bg-gray-50 rounded-xl">
+              <TrendingUp className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500">У вас поки немає інвестицій</p>
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {finance.investments.map(inv => {
+                const profit = inv.currentValue - inv.amountInvested;
+                const profitPercent = inv.amountInvested > 0 ? (profit / inv.amountInvested) * 100 : 0;
+                const isProfitable = profit >= 0;
+
+                return (
+                  <Card key={inv.id}>
+                    <CardContent className="py-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                            isProfitable ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                          }`}>
+                            {isProfitable ? <ArrowUp className="w-6 h-6" /> : <ArrowDown className="w-6 h-6" />}
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-gray-900">{inv.name}</h3>
+                            <p className="text-sm text-gray-500">{INVESTMENT_CATEGORIES[inv.category]}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-lg">${inv.currentValue.toLocaleString()}</p>
+                          <p className={`text-sm ${isProfitable ? 'text-green-600' : 'text-red-600'}`}>
+                            {isProfitable ? '+' : ''}{profit.toLocaleString()} ({profitPercent.toFixed(2)}%)
+                          </p>
+                        </div>
+                        <button 
+                          onClick={() => deleteInvestment(inv.id)}
+                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors ml-4"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* 7 Rules Tab */}
       {activeTab === 'rules' && (
         <div>
@@ -393,6 +497,51 @@ export const Finance: React.FC = () => {
           <Input label="Опис" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Деталі..." />
           <div className="flex justify-end gap-3">
             <Button type="button" variant="ghost" onClick={() => setShowModal(false)}>Скасувати</Button>
+            <Button type="submit">Додати</Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Add Investment Modal */}
+      <Modal isOpen={showInvestmentModal} onClose={() => setShowInvestmentModal(false)} title="Новий актив">
+        <form onSubmit={handleAddInvestment} className="space-y-4">
+          <Input 
+            label="Назва активу" 
+            value={investmentForm.name} 
+            onChange={e => setInvestmentForm({ ...investmentForm, name: e.target.value })} 
+            placeholder="Apple, Bitcoin, Квартира..." 
+            required 
+          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Категорія</label>
+            <select
+              value={investmentForm.category}
+              onChange={e => setInvestmentForm({ ...investmentForm, category: e.target.value as Investment['category'] })}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            >
+              {Object.entries(INVESTMENT_CATEGORIES).map(([key, label]) => (
+                <option key={key} value={key}>{label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <Input 
+              label="Вкладено ($)" 
+              type="number" 
+              value={investmentForm.amountInvested} 
+              onChange={e => setInvestmentForm({ ...investmentForm, amountInvested: Number(e.target.value) })} 
+              required 
+            />
+            <Input 
+              label="Поточна вартість ($)" 
+              type="number" 
+              value={investmentForm.currentValue} 
+              onChange={e => setInvestmentForm({ ...investmentForm, currentValue: Number(e.target.value) })} 
+              required 
+            />
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button type="button" variant="ghost" onClick={() => setShowInvestmentModal(false)}>Скасувати</Button>
             <Button type="submit">Додати</Button>
           </div>
         </form>

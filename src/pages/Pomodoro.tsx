@@ -9,9 +9,11 @@ import {
   CheckCircle2,
   Settings2,
   Volume2,
-  VolumeX
+  VolumeX,
+  Headphones
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
+import { useFocusSound } from '../hooks/useFocusSound';
 import { Card, CardContent, CardHeader, CardTitle, Button, Input } from '../components/ui';
 
 type TimerMode = 'work' | 'shortBreak' | 'longBreak';
@@ -44,6 +46,7 @@ const MODE_COLORS: Record<TimerMode, { bg: string; ring: string; text: string }>
 
 export const Pomodoro: React.FC = () => {
   const { addPoints } = useStore();
+  const focusSound = useFocusSound();
   const [settings, setSettings] = useState<PomodoroSettings>(DEFAULT_SETTINGS);
   const [mode, setMode] = useState<TimerMode>('work');
   const [timeLeft, setTimeLeft] = useState(settings.workDuration * 60);
@@ -358,6 +361,67 @@ export const Pomodoro: React.FC = () => {
                   <p className="text-xs text-gray-500">XP зароблено</p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Focus Sounds */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Headphones className="w-5 h-5" />
+                Фокус-звуки
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">Фоновий шум</span>
+                <button
+                  onClick={focusSound.toggle}
+                  className={`p-2 rounded-full transition-colors ${
+                    focusSound.isPlaying 
+                      ? 'bg-blue-100 text-blue-600' 
+                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  }`}
+                >
+                  {focusSound.isPlaying ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+                </button>
+              </div>
+
+              {focusSound.isPlaying && (
+                <div className="space-y-4 animate-fade-in">
+                  <div className="space-y-2">
+                    <label className="text-xs text-gray-500">Тип звуку</label>
+                    <select
+                      value={focusSound.type}
+                      onChange={(e) => focusSound.setType(e.target.value as any)}
+                      className="w-full p-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="white">Білий шум (Ізоляція)</option>
+                      <option value="pink">Рожевий шум (Баланс)</option>
+                      <option value="brown">Коричневий шум (Глибина)</option>
+                      <option value="binaural_alpha">Альфа хвилі (Релакс)</option>
+                      <option value="binaural_beta">Бета хвилі (Фокус)</option>
+                      <option value="binaural_theta">Тета хвилі (Креатив)</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <label className="text-xs text-gray-500">Гучність</label>
+                      <span className="text-xs text-gray-500">{Math.round(focusSound.volume * 100)}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.01"
+                      value={focusSound.volume}
+                      onChange={(e) => focusSound.setVolume(parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                    />
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 

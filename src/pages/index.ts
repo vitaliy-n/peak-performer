@@ -16,3 +16,5 @@ export { Finance } from './Finance';
 export { Health } from './Health';
 export { Mindset } from './Mindset';
 export { Library } from './Library';
+export { AICoach } from './AICoach';
+export { TwelveWeekYearPage } from './TwelveWeekYear';

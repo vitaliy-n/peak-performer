@@ -199,7 +199,7 @@ export const Settings: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-4">
             <button
               onClick={() => setTheme('light')}
               className={`p-4 border-2 rounded-xl transition-colors ${
@@ -217,6 +217,15 @@ export const Settings: React.FC = () => {
             >
               <div className="w-full h-8 bg-gray-800 rounded mb-2" />
               <p className="text-sm font-medium">Темна</p>
+            </button>
+            <button
+              onClick={() => setTheme('oled')}
+              className={`p-4 border-2 rounded-xl transition-colors ${
+                theme === 'oled' ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="w-full h-8 bg-black rounded mb-2" />
+              <p className="text-sm font-medium">OLED</p>
             </button>
             <button
               onClick={() => setTheme('auto')}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { format, subDays } from 'date-fns';
+import { format, subDays, parseISO } from 'date-fns';
 import { uk } from 'date-fns/locale';
 import { 
   TrendingUp, 
@@ -8,11 +8,33 @@ import {
   CheckCircle2,
   Clock,
   BookOpen,
-  BarChart3
+  BarChart3,
+  Activity
 } from 'lucide-react';
+import { 
+  ResponsiveContainer, 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  Tooltip, 
+  LineChart, 
+  Line, 
+  PieChart, 
+  Pie, 
+  Cell,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  Legend
+} from 'recharts';
 import { useStore } from '../store/useStore';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui';
 import { LIFE_AREA_LABELS } from '../types';
+
+const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6'];
 
 export const Analytics: React.FC = () => {
   const { habits, tasks, goals, dailyLogs, journalEntries, user } = useStore();
@@ -21,10 +43,25 @@ export const Analytics: React.FC = () => {
   const last7Days = Array.from({ length: 7 }, (_, i) => format(subDays(today, 6 - i), 'yyyy-MM-dd'));
   const last30Days = Array.from({ length: 30 }, (_, i) => format(subDays(today, 29 - i), 'yyyy-MM-dd'));
 
-  // Habits stats
-  const habitCompletionsByDay = last7Days.map(date => {
+  // --- Habits Stats (Bar Chart) ---
+  const habitData = last7Days.map(date => {
     const completed = habits.filter(h => h.completionHistory[date]).length;
-    return { date, completed, total: habits.length };
+    return {
+      date: format(parseISO(date), 'EEE', { locale: uk }),
+      completed,
+      total: habits.length
+    };
+  });
+
+  // --- Productivity/Energy/Mood (Line Chart) ---
+  const dailyLogData = last7Days.map(date => {
+    const log = dailyLogs.find(l => l.date === date);
+    return {
+      date: format(parseISO(date), 'EEE', { locale: uk }),
+      productivity: log?.productivityScore || 0,
+      energy: log?.energyScore || 0,
+      mood: log?.moodScore || 0,
+    };
   });
 
   const avgHabitCompletion = habits.length > 0
@@ -35,52 +72,40 @@ export const Analytics: React.FC = () => {
       )
     : 0;
 
-  // Tasks stats
-  const completedTasksLast7Days = tasks.filter(t => 
-    t.completed && t.completedAt && last7Days.includes(t.completedAt.split('T')[0])
-  ).length;
+  // --- Tasks Stats (Pie Chart) ---
+  const tasksByPriority = [
+    { name: 'A (Обов\'язково)', value: tasks.filter(t => t.priority === 'A').length },
+    { name: 'B (Бажано)', value: tasks.filter(t => t.priority === 'B').length },
+    { name: 'C (Можна)', value: tasks.filter(t => t.priority === 'C').length },
+    { name: 'D (Делегувати)', value: tasks.filter(t => t.priority === 'D').length },
+    { name: 'E (Видалити)', value: tasks.filter(t => t.priority === 'E').length },
+  ].filter(item => item.value > 0);
 
-  const tasksByPriority = {
-    A: tasks.filter(t => t.priority === 'A').length,
-    B: tasks.filter(t => t.priority === 'B').length,
-    C: tasks.filter(t => t.priority === 'C').length,
-    D: tasks.filter(t => t.priority === 'D').length,
-    E: tasks.filter(t => t.priority === 'E').length,
-  };
-
-  // Goals stats
-  const activeGoals = goals.filter(g => g.status === 'active');
+  // --- Goals Stats (Radar Chart) ---
   const completedGoals = goals.filter(g => g.status === 'completed');
-  const avgGoalProgress = activeGoals.length > 0
-    ? Math.round(activeGoals.reduce((sum, g) => sum + g.progress, 0) / activeGoals.length)
-    : 0;
 
-  const goalsByArea = Object.keys(LIFE_AREA_LABELS).map(area => ({
-    area,
-    label: LIFE_AREA_LABELS[area as keyof typeof LIFE_AREA_LABELS],
-    count: goals.filter(g => g.lifeArea === area).length,
-    avgProgress: Math.round(
-      goals.filter(g => g.lifeArea === area && g.status === 'active')
-        .reduce((sum, g) => sum + g.progress, 0) /
-      (goals.filter(g => g.lifeArea === area && g.status === 'active').length || 1)
-    ),
-  }));
+  const goalsRadarData = Object.keys(LIFE_AREA_LABELS).map(area => {
+    const areaGoals = goals.filter(g => g.lifeArea === area && g.status === 'active');
+    const avgProgress = areaGoals.length > 0
+      ? Math.round(areaGoals.reduce((sum, g) => sum + g.progress, 0) / areaGoals.length)
+      : 0;
+    
+    return {
+      subject: LIFE_AREA_LABELS[area as keyof typeof LIFE_AREA_LABELS],
+      A: avgProgress,
+      fullMark: 100,
+    };
+  });
 
   // Streaks
-  const maxStreak = Math.max(...habits.map(h => h.longestStreak), 0);
   const currentMaxStreak = Math.max(...habits.map(h => h.currentStreak), 0);
   const totalHabitCompletions = habits.reduce((sum, h) => sum + h.totalCompletions, 0);
 
-  // Journal stats
-  const journalEntriesLast30 = journalEntries.filter(e => 
-    last30Days.includes(e.date)
-  ).length;
-
-  // Reading stats (from daily logs)
+  // Journal & Reading
+  const journalEntriesLast30 = journalEntries.filter(e => last30Days.includes(e.date)).length;
   const totalPagesRead = dailyLogs.reduce((sum, log) => sum + (log.readingPages || 0), 0);
   const totalDeepWorkHours = dailyLogs.reduce((sum, log) => sum + (log.deepWorkHours || 0), 0);
 
-  // Morning routine completion
   const morningRoutineCompletions = dailyLogs.filter(log => {
     const saversCompleted = [
       log.silenceCompleted,
@@ -97,9 +122,9 @@ export const Analytics: React.FC = () => {
     <div className="p-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Аналітика</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Аналітика</h1>
         <p className="text-gray-500 mt-1">
-          Відстежуйте свій прогрес та знаходьте паттерни
+          Відстежуйте свій прогрес та знаходьте патерни
         </p>
       </div>
 
@@ -108,11 +133,11 @@ export const Analytics: React.FC = () => {
         <Card>
           <CardContent className="py-4">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-orange-100 rounded-xl">
+              <div className="p-3 bg-orange-100 dark:bg-orange-900/20 rounded-xl">
                 <Flame className="w-6 h-6 text-orange-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{currentMaxStreak}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{currentMaxStreak}</p>
                 <p className="text-sm text-gray-500">Поточний streak</p>
               </div>
             </div>
@@ -122,11 +147,11 @@ export const Analytics: React.FC = () => {
         <Card>
           <CardContent className="py-4">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-green-100 rounded-xl">
+              <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-xl">
                 <CheckCircle2 className="w-6 h-6 text-green-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{totalHabitCompletions}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{totalHabitCompletions}</p>
                 <p className="text-sm text-gray-500">Звичок виконано</p>
               </div>
             </div>
@@ -136,11 +161,11 @@ export const Analytics: React.FC = () => {
         <Card>
           <CardContent className="py-4">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-blue-100 rounded-xl">
+              <div className="p-3 bg-blue-100 dark:bg-blue-900/20 rounded-xl">
                 <Target className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{completedGoals.length}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{completedGoals.length}</p>
                 <p className="text-sm text-gray-500">Цілей досягнуто</p>
               </div>
             </div>
@@ -150,11 +175,11 @@ export const Analytics: React.FC = () => {
         <Card>
           <CardContent className="py-4">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-purple-100 rounded-xl">
+              <div className="p-3 bg-purple-100 dark:bg-purple-900/20 rounded-xl">
                 <TrendingUp className="w-6 h-6 text-purple-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{user?.totalPoints?.toLocaleString() || 0}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{user?.totalPoints?.toLocaleString() || 0}</p>
                 <p className="text-sm text-gray-500">Всього XP</p>
               </div>
             </div>
@@ -162,31 +187,25 @@ export const Analytics: React.FC = () => {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Habits Weekly Chart */}
         <Card>
           <CardHeader>
             <CardTitle>Звички за тиждень</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-end justify-between h-40 gap-2">
-              {habitCompletionsByDay.map(({ date, completed, total }) => {
-                const height = total > 0 ? (completed / total) * 100 : 0;
-                return (
-                  <div key={date} className="flex-1 flex flex-col items-center">
-                    <div className="w-full bg-gray-100 rounded-t-lg relative" style={{ height: '120px' }}>
-                      <div 
-                        className="absolute bottom-0 w-full bg-gradient-to-t from-green-500 to-green-400 rounded-t-lg transition-all"
-                        style={{ height: `${height}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500 mt-2">
-                      {format(new Date(date), 'EEE', { locale: uk })}
-                    </p>
-                    <p className="text-xs font-medium">{completed}/{total}</p>
-                  </div>
-                );
-              })}
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={habitData}>
+                  <XAxis dataKey="date" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `${value}`} />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                    cursor={{ fill: 'transparent' }}
+                  />
+                  <Bar dataKey="completed" fill="#10B981" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
             <div className="mt-4 flex items-center justify-between text-sm">
               <span className="text-gray-500">Середній показник за 30 днів:</span>
@@ -195,125 +214,117 @@ export const Analytics: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Goals by Life Area */}
+        {/* Productivity Trends */}
         <Card>
           <CardHeader>
-            <CardTitle>Цілі за сферами життя</CardTitle>
+            <CardTitle>Тренди продуктивності</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {goalsByArea.filter(g => g.count > 0).map(({ area, label, count, avgProgress }) => (
-                <div key={area} className="flex items-center gap-3">
-                  <div className="w-24 text-sm font-medium text-gray-700 truncate">
-                    {label}
-                  </div>
-                  <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-blue-500 rounded-full transition-all"
-                      style={{ width: `${avgProgress}%` }}
-                    />
-                  </div>
-                  <div className="w-16 text-right">
-                    <span className="text-sm font-medium">{avgProgress}%</span>
-                    <span className="text-xs text-gray-500 ml-1">({count})</span>
-                  </div>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={dailyLogData}>
+                  <XAxis dataKey="date" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} domain={[0, 10]} />
+                  <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                  <Legend />
+                  <Line type="monotone" dataKey="productivity" name="Продуктивність" stroke="#3B82F6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                  <Line type="monotone" dataKey="energy" name="Енергія" stroke="#F59E0B" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                  <Line type="monotone" dataKey="mood" name="Настрій" stroke="#EC4899" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* Goals Radar */}
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <CardTitle>Баланс цілей (Колесо життя)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={goalsRadarData}>
+                  <PolarGrid stroke="#e5e7eb" />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#6b7280', fontSize: 10 }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                  <Radar name="Progress" dataKey="A" stroke="#8B5CF6" fill="#8B5CF6" fillOpacity={0.6} />
+                  <Tooltip />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tasks Priority Pie */}
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <CardTitle>Пріоритети завдань</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={tasksByPriority}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {tasksByPriority.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend layout="horizontal" verticalAlign="bottom" align="center" />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>_
+        </Card>
+
+        {/* Activity Summary */}
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <CardTitle>Активність (30 днів)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <BookOpen className="w-5 h-5 text-amber-600" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Прочитано сторінок</span>
                 </div>
-              ))}
-              {goalsByArea.every(g => g.count === 0) && (
-                <p className="text-center text-gray-500 py-4">Ще немає цілей</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                <span className="text-xl font-bold text-gray-900 dark:text-gray-100">{totalPagesRead}</span>
+              </div>
+              
+              <div className="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <Clock className="w-5 h-5 text-purple-600" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Годин Deep Work</span>
+                </div>
+                <span className="text-xl font-bold text-gray-900 dark:text-gray-100">{totalDeepWorkHours.toFixed(1)}</span>
+              </div>
 
-        {/* Tasks by Priority */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Завдання за пріоритетом (ABCDE)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-5 gap-4 text-center">
-              {Object.entries(tasksByPriority).map(([priority, count]) => {
-                const colors = {
-                  A: 'bg-red-100 text-red-700',
-                  B: 'bg-yellow-100 text-yellow-700',
-                  C: 'bg-blue-100 text-blue-700',
-                  D: 'bg-gray-100 text-gray-700',
-                  E: 'bg-gray-50 text-gray-500',
-                };
-                return (
-                  <div key={priority} className={`p-4 rounded-xl ${colors[priority as keyof typeof colors]}`}>
-                    <p className="text-2xl font-bold">{count}</p>
-                    <p className="text-sm font-medium">{priority}</p>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="mt-4 text-center">
-              <p className="text-sm text-gray-500">
-                Виконано за 7 днів: <span className="font-semibold text-green-600">{completedTasksLast7Days}</span>
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+              <div className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <BarChart3 className="w-5 h-5 text-blue-600" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Записів журналу</span>
+                </div>
+                <span className="text-xl font-bold text-gray-900 dark:text-gray-100">{journalEntriesLast30}</span>
+              </div>
 
-        {/* Activity Stats */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Активність</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-amber-50 rounded-xl text-center">
-                <BookOpen className="w-8 h-8 text-amber-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold">{totalPagesRead}</p>
-                <p className="text-sm text-gray-500">Сторінок прочитано</p>
-              </div>
-              <div className="p-4 bg-purple-50 rounded-xl text-center">
-                <Clock className="w-8 h-8 text-purple-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold">{totalDeepWorkHours.toFixed(1)}</p>
-                <p className="text-sm text-gray-500">Годин Deep Work</p>
-              </div>
-              <div className="p-4 bg-blue-50 rounded-xl text-center">
-                <BarChart3 className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold">{journalEntriesLast30}</p>
-                <p className="text-sm text-gray-500">Записів за 30 днів</p>
-              </div>
-              <div className="p-4 bg-green-50 rounded-xl text-center">
-                <CheckCircle2 className="w-8 h-8 text-green-600 mx-auto mb-2" />
-                <p className="text-2xl font-bold">{morningRoutineCompletions}</p>
-                <p className="text-sm text-gray-500">Ранкових рутин</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Streaks & Records */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Рекорди та досягнення</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="p-4 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl text-white text-center">
-                <Flame className="w-8 h-8 mx-auto mb-2" />
-                <p className="text-3xl font-bold">{maxStreak}</p>
-                <p className="text-sm opacity-90">Найдовший streak</p>
-              </div>
-              <div className="p-4 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl text-white text-center">
-                <CheckCircle2 className="w-8 h-8 mx-auto mb-2" />
-                <p className="text-3xl font-bold">{completedGoals.length}</p>
-                <p className="text-sm opacity-90">Цілей досягнуто</p>
-              </div>
-              <div className="p-4 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-xl text-white text-center">
-                <Target className="w-8 h-8 mx-auto mb-2" />
-                <p className="text-3xl font-bold">{avgGoalProgress}%</p>
-                <p className="text-sm opacity-90">Середній прогрес</p>
-              </div>
-              <div className="p-4 bg-gradient-to-br from-purple-400 to-pink-500 rounded-xl text-white text-center">
-                <TrendingUp className="w-8 h-8 mx-auto mb-2" />
-                <p className="text-3xl font-bold">{user?.level || 1}</p>
-                <p className="text-sm opacity-90">Поточний рівень</p>
+              <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <Activity className="w-5 h-5 text-green-600" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Ранкових рутин</span>
+                </div>
+                <span className="text-xl font-bold text-gray-900 dark:text-gray-100">{morningRoutineCompletions}</span>
               </div>
             </div>
           </CardContent>

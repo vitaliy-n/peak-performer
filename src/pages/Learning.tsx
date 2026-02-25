@@ -13,49 +13,22 @@ import {
 } from 'lucide-react';
 import { useStore } from '../store/useStore';
 import { Card, CardContent, Button, Modal, Input, Textarea } from '../components/ui';
-
-interface Skill {
-  id: string;
-  name: string;
-  category: string;
-  totalMinutes: number;
-  targetMinutes: number;
-  subSkills: string[];
-  notes: string;
-  createdAt: string;
-}
-
-interface FeynmanNote {
-  id: string;
-  concept: string;
-  simpleExplanation: string;
-  gaps: string;
-  analogy: string;
-  createdAt: string;
-}
-
-interface Book {
-  id: string;
-  title: string;
-  author: string;
-  why: string;
-  topIdeas: string[];
-  rating: number;
-  status: 'reading' | 'completed' | 'wishlist';
-  pagesRead: number;
-  totalPages: number;
-  createdAt: string;
-}
-
-const INITIAL_SKILLS: Skill[] = [];
-const INITIAL_BOOKS: Book[] = [];
+import type { Book } from '../types';
 
 export const Learning: React.FC = () => {
-  const { addPoints } = useStore();
+  const { 
+    // Skills (Learning Slice)
+    skills, addSkill, deleteSkill, updateSkill,
+    // Feynman (Learning Slice)
+    feynmanNotes, addFeynmanNote, deleteFeynmanNote,
+    // Books (Reading Slice)
+    books, addBook,
+    addPoints 
+  } = useStore();
+
   const [activeTab, setActiveTab] = useState<'skills' | 'feynman' | 'books'>('skills');
 
-  // Skills state
-  const [skills, setSkills] = useState<Skill[]>(INITIAL_SKILLS);
+  // Skills state forms
   const [showSkillModal, setShowSkillModal] = useState(false);
   const [skillForm, setSkillForm] = useState({ name: '', category: '', targetMinutes: 1200, subSkills: '', notes: '' });
 
@@ -64,16 +37,14 @@ export const Learning: React.FC = () => {
   const [timerRunning, setTimerRunning] = useState(false);
   const [timerSeconds, setTimerSeconds] = useState(0);
 
-  // Feynman state
-  const [feynmanNotes, setFeynmanNotes] = useState<FeynmanNote[]>([]);
+  // Feynman state forms
   const [showFeynmanModal, setShowFeynmanModal] = useState(false);
   const [feynmanForm, setFeynmanForm] = useState({ concept: '', simpleExplanation: '', gaps: '', analogy: '' });
 
-  // Books state
-  const [books, setBooks] = useState<Book[]>(INITIAL_BOOKS);
+  // Books state forms
   const [showBookModal, setShowBookModal] = useState(false);
   const [bookForm, setBookForm] = useState({
-    title: '', author: '', why: '', topIdeas: '', rating: 8,
+    title: '', author: '', why: '', category: '', topIdeas: '', rating: 8,
     status: 'reading' as Book['status'], pagesRead: 0, totalPages: 300,
   });
 
@@ -92,10 +63,11 @@ export const Learning: React.FC = () => {
       // Save accumulated time
       const minutes = Math.floor(timerSeconds / 60);
       if (minutes > 0) {
-        setSkills(prev => prev.map(s =>
-          s.id === skillId ? { ...s, totalMinutes: s.totalMinutes + minutes } : s
-        ));
-        addPoints(minutes);
+        const skill = skills.find(s => s.id === skillId);
+        if (skill) {
+          updateSkill(skillId, { totalMinutes: skill.totalMinutes + minutes });
+          addPoints(minutes);
+        }
       }
       setTimerSeconds(0);
       setActiveSkillId(null);
@@ -108,53 +80,42 @@ export const Learning: React.FC = () => {
 
   const handleAddSkill = (e: React.FormEvent) => {
     e.preventDefault();
-    const newSkill: Skill = {
-      id: Date.now().toString(),
+    addSkill({
       name: skillForm.name,
       category: skillForm.category,
       totalMinutes: 0,
       targetMinutes: skillForm.targetMinutes,
       subSkills: skillForm.subSkills.split(',').map(s => s.trim()).filter(Boolean),
       notes: skillForm.notes,
-      createdAt: new Date().toISOString(),
-    };
-    setSkills(prev => [...prev, newSkill]);
+    });
     setShowSkillModal(false);
     setSkillForm({ name: '', category: '', targetMinutes: 1200, subSkills: '', notes: '' });
-    addPoints(10);
   };
 
   const handleAddFeynman = (e: React.FormEvent) => {
     e.preventDefault();
-    const note: FeynmanNote = {
-      id: Date.now().toString(),
-      ...feynmanForm,
-      createdAt: new Date().toISOString(),
-    };
-    setFeynmanNotes(prev => [...prev, note]);
+    addFeynmanNote(feynmanForm);
     setShowFeynmanModal(false);
     setFeynmanForm({ concept: '', simpleExplanation: '', gaps: '', analogy: '' });
-    addPoints(15);
   };
 
   const handleAddBook = (e: React.FormEvent) => {
     e.preventDefault();
-    const book: Book = {
-      id: Date.now().toString(),
+    addBook({
       title: bookForm.title,
       author: bookForm.author,
       why: bookForm.why,
+      category: bookForm.category,
       topIdeas: bookForm.topIdeas.split('\n').filter(Boolean),
       rating: bookForm.rating,
       status: bookForm.status,
       pagesRead: bookForm.pagesRead,
       totalPages: bookForm.totalPages,
-      createdAt: new Date().toISOString(),
-    };
-    setBooks(prev => [...prev, book]);
+      dailyPagesGoal: 10,
+      favorite: false,
+    });
     setShowBookModal(false);
-    setBookForm({ title: '', author: '', why: '', topIdeas: '', rating: 8, status: 'reading', pagesRead: 0, totalPages: 300 });
-    addPoints(book.status === 'completed' ? 200 : 10);
+    setBookForm({ title: '', author: '', why: '', category: '', topIdeas: '', rating: 8, status: 'reading', pagesRead: 0, totalPages: 300 });
   };
 
   const formatTime = (seconds: number) => {
@@ -252,7 +213,7 @@ export const Learning: React.FC = () => {
                           )}
                         </div>
                         <button
-                          onClick={() => setSkills(prev => prev.filter(s => s.id !== skill.id))}
+                          onClick={() => deleteSkill(skill.id)}
                           className="p-1 hover:bg-red-50 rounded text-red-400"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -375,7 +336,7 @@ export const Learning: React.FC = () => {
                     <div className="flex items-start justify-between mb-3">
                       <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-lg">{note.concept}</h3>
                       <button
-                        onClick={() => setFeynmanNotes(prev => prev.filter(n => n.id !== note.id))}
+                        onClick={() => deleteFeynmanNote(note.id)}
                         className="p-1 hover:bg-red-50 rounded text-red-400"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -552,7 +513,10 @@ export const Learning: React.FC = () => {
       <Modal isOpen={showBookModal} onClose={() => setShowBookModal(false)} title="Додати книгу">
         <form onSubmit={handleAddBook} className="space-y-4">
           <Input label="Назва книги" value={bookForm.title} onChange={e => setBookForm({ ...bookForm, title: e.target.value })} required />
-          <Input label="Автор" value={bookForm.author} onChange={e => setBookForm({ ...bookForm, author: e.target.value })} />
+          <div className="grid grid-cols-2 gap-4">
+            <Input label="Автор" value={bookForm.author} onChange={e => setBookForm({ ...bookForm, author: e.target.value })} />
+            <Input label="Категорія" value={bookForm.category} onChange={e => setBookForm({ ...bookForm, category: e.target.value })} placeholder="Бізнес, Психологія..." />
+          </div>
           <Input label="Чому я це читаю?" value={bookForm.why} onChange={e => setBookForm({ ...bookForm, why: e.target.value })} />
           <div className="grid grid-cols-3 gap-4">
             <div>
